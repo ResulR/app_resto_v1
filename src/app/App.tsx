@@ -33,6 +33,7 @@ import './RestaurantLayout.css'
 
 type Screen = 'orders' | 'settings'
 type SettingsTab = 'categories' | 'products' | 'options'
+type ConsumptionMode = 'sur_place' | 'emporter' | null
 
 
 function formatPrice(cents: number) {
@@ -167,8 +168,12 @@ function OrderSummary({
   onCommentChange,
   onQuantityChange,
   onEdit,
+  consumptionMode,
+  onConsumptionModeChange,
 }: {
   items: CartItem[]
+  consumptionMode: ConsumptionMode
+  onConsumptionModeChange: (mode: ConsumptionMode) => void
   comment: string
   onCommentChange: (value: string) => void
   onQuantityChange: (id: string, delta: 1 | -1) => void
@@ -318,6 +323,50 @@ function OrderSummary({
           </>
         )}
 
+        <fieldset className="consumption-mode">
+          <legend>Mode de consommation (facultatif)</legend>
+
+          <div className="consumption-mode-buttons">
+            <button
+              type="button"
+              className={
+                consumptionMode === 'sur_place'
+                  ? 'consumption-choice selected'
+                  : 'consumption-choice'
+              }
+              aria-pressed={consumptionMode === 'sur_place'}
+              onClick={() =>
+                onConsumptionModeChange(
+                  consumptionMode === 'sur_place'
+                    ? null
+                    : 'sur_place',
+                )
+              }
+            >
+              Sur place
+            </button>
+
+            <button
+              type="button"
+              className={
+                consumptionMode === 'emporter'
+                  ? 'consumption-choice selected'
+                  : 'consumption-choice'
+              }
+              aria-pressed={consumptionMode === 'emporter'}
+              onClick={() =>
+                onConsumptionModeChange(
+                  consumptionMode === 'emporter'
+                    ? null
+                    : 'emporter',
+                )
+              }
+            >
+              À emporter
+            </button>
+          </div>
+        </fieldset>
+
         <button
           className="finish-button"
           type="button"
@@ -343,6 +392,8 @@ export default function App() {
 
   const [items, setItems] = useState<CartItem[]>([])
   const [comment, setComment] = useState('')
+  const [consumptionMode, setConsumptionMode] =
+    useState<ConsumptionMode>(null)
   const [customizing, setCustomizing] = useState<Product | null>(null)
   const [editingItemId, setEditingItemId] = useState<string | null>(null)
   const [freeItemOpen, setFreeItemOpen] = useState(false)
@@ -520,6 +571,8 @@ export default function App() {
             items={items}
             comment={comment}
             onCommentChange={setComment}
+            consumptionMode={consumptionMode}
+            onConsumptionModeChange={setConsumptionMode}
             onQuantityChange={changeQuantity}
             onEdit={editItem}
           />

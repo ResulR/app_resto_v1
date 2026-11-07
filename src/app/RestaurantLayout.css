@@ -1137,3 +1137,53 @@ button:focus-visible {
   border: 1px solid #f5e5b9;
   border-radius: 9px;
 }
+
+.consumption-mode {
+  margin: 20px 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.consumption-mode legend {
+  margin-bottom: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #25374c;
+}
+
+.consumption-mode-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.consumption-choice {
+  min-height: 52px;
+  padding: 11px 8px;
+  border: 1px solid #dce3ec;
+  border-radius: 11px;
+  background: #fff;
+  color: #25374c;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.consumption-choice.selected {
+  border-color: #25374c;
+  background: #25374c;
+  color: #fff;
+}
+
+.consumption-choice:focus-visible {
+  outline: 3px solid #7aa8ff;
+  outline-offset: 2px;
+}
+
+@media (max-width: 380px) {
+  .consumption-mode-buttons {
+    grid-template-columns: 1fr;
+  }
+}
