@@ -6,6 +6,7 @@ import {
   logoutAdmin,
 } from './authClient'
 import { resolveGuardedAccess } from './accessController'
+import { AUTH_CHANGED_EVENT } from './AccessGate'
 import {
   beginLogout,
   completePendingLogout,
@@ -179,6 +180,9 @@ export function AdminAccount() {
 
       setPassword('')
 
+      // Prévenir le contrôleur global immédiatement.
+      window.dispatchEvent(new Event(AUTH_CHANGED_EVENT))
+
       if (result.status === 'pending') {
         setState('pending-logout')
         setMessage(
@@ -194,6 +198,7 @@ export function AdminAccount() {
       try {
         if (hasPendingLogout(window.localStorage)) {
           setState('pending-logout')
+          window.dispatchEvent(new Event(AUTH_CHANGED_EVENT))
         }
       } catch {
         // Ne pas annoncer une déconnexion réussie.

@@ -1870,3 +1870,67 @@ button:focus-visible {
     padding: 16px;
   }
 }
+
+/* Point 7.4 : contrôle d'accès global */
+
+.restaurant-access-screen {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: #f3f5f8;
+}
+
+.restaurant-access-card {
+  width: min(100%, 440px);
+  display: grid;
+  gap: 18px;
+  padding: 32px;
+  background: #fff;
+  border: 1px solid #dce3ec;
+  border-radius: 18px;
+}
+
+.restaurant-access-card h1,
+.restaurant-access-card p {
+  margin: 0;
+}
+
+.restaurant-access-card form {
+  display: grid;
+  gap: 12px;
+}
+
+.restaurant-access-card input {
+  width: 100%;
+  min-height: 52px;
+  padding: 12px;
+  border: 1px solid #b8c5d3;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 16px;
+}
+
+.restaurant-access-card button {
+  min-height: 48px;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: #25374c;
+  color: white;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.restaurant-access-card button:disabled {
+  opacity: .55;
+}
+
+.restaurant-offline-banner {
+  padding: 10px 18px;
+  background: #fff0cb;
+  color: #704a00;
+  font-weight: 600;
+  text-align: center;
+}
