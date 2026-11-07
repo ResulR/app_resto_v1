@@ -10,6 +10,11 @@ import type {
 import { CategoryManager } from '../features/catalogue/CategoryManager'
 import { ProductManager } from '../features/catalogue/ProductManager'
 import { OptionManager } from '../features/catalogue/OptionManager'
+import {
+  ProductCustomizer,
+  type SelectedOption,
+} from '../features/orders/ProductCustomizer'
+import { getAvailableOptionsForProduct } from '../features/catalogue/availabilityRepository'
 
 import './RestaurantLayout.css'
 
@@ -21,6 +26,7 @@ type CartItem = {
   productId: string
   name: string
   priceCents?: number
+  options: SelectedOption[]
 }
 
 function formatPrice(cents: number) {
@@ -143,12 +149,20 @@ function OrderSummary({
   items: CartItem[]
 }) {
   const knownTotal = items.reduce(
-    (sum, item) => sum + (item.priceCents ?? 0),
+    (sum, item) =>
+      sum +
+      (item.priceCents ?? 0) +
+      item.options.reduce(
+        (total, option) => total + (option.priceCents ?? 0),
+        0,
+      ),
     0,
   )
 
   const hasUnknownPrices = items.some(
-    item => item.priceCents === undefined,
+    item =>
+      item.priceCents === undefined ||
+      item.options.some(option => option.priceCents === undefined),
   )
 
   return (
@@ -183,12 +197,26 @@ function OrderSummary({
 
               <div className="item-details">
                 <strong>{item.name}</strong>
+
+                {item.options.map(option => (
+                  <span key={option.id}>
+                    {option.groupName} : {option.name}
+                  </span>
+                ))}
               </div>
 
               <strong className="item-price">
-                {item.priceCents === undefined
+                {item.priceCents === undefined ||
+                  item.options.some(option => option.priceCents === undefined)
                   ? '—'
-                  : formatPrice(item.priceCents)}
+                  : formatPrice(
+                      item.priceCents +
+                      item.options.reduce(
+                        (total, option) =>
+                          total + (option.priceCents ?? 0),
+                        0,
+                      ),
+                    )}
               </strong>
             </div>
           ))
@@ -241,6 +269,8 @@ export default function App() {
     useState<SettingsTab>('categories')
 
   const [items, setItems] = useState<CartItem[]>([])
+  const [customizing, setCustomizing] = useState<Product | null>(null)
+  const [orderError, setOrderError] = useState('')
 
   const categories = useLiveQuery(
     () => db.categories.orderBy('position').toArray(),
@@ -267,7 +297,10 @@ export default function App() {
     )
     .sort((a, b) => a.position - b.position)
 
-  function addProduct(product: Product) {
+  function appendProduct(
+    product: Product,
+    options: SelectedOption[] = [],
+  ) {
     setItems(current => [
       ...current,
       {
@@ -275,8 +308,35 @@ export default function App() {
         productId: product.id,
         name: product.name,
         priceCents: product.priceCents,
+        options,
       },
     ])
+  }
+
+  async function addProduct(product: Product) {
+    setOrderError('')
+
+    try {
+      const currentProduct = await db.products.get(product.id)
+
+      if (!currentProduct?.active) {
+        throw new Error('Ce produit est indisponible.')
+      }
+
+      const options = await getAvailableOptionsForProduct(product.id)
+
+      if (options.length > 0) {
+        setCustomizing(currentProduct)
+      } else {
+        appendProduct(currentProduct)
+      }
+    } catch (cause) {
+      setOrderError(
+        cause instanceof Error
+          ? cause.message
+          : 'Impossible d’ajouter ce produit.',
+      )
+    }
   }
 
   return (
@@ -371,6 +431,23 @@ export default function App() {
 
           <OrderSummary items={items} />
         </div>
+      )}
+
+      {orderError && (
+        <p className="order-action-error" role="alert">
+          {orderError}
+        </p>
+      )}
+
+      {customizing && (
+        <ProductCustomizer
+          product={customizing}
+          onCancel={() => setCustomizing(null)}
+          onConfirm={(product, options) => {
+            appendProduct(product, options)
+            setCustomizing(null)
+          }}
+        />
       )}
     </div>
   )
