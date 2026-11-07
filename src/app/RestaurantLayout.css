@@ -1574,3 +1574,115 @@ button:focus-visible {
   font-weight: 700;
   color: #2452a1;
 }
+
+/* Point 5.4 — ergonomie iPad */
+
+.order-main-column {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 18px;
+}
+
+.order-main-column > .catalogue-panel {
+  min-width: 0;
+}
+
+.order-main-column > .draft-workspace {
+  margin: 0 24px 24px;
+}
+
+/* Les contrôles doivent être faciles à utiliser au doigt. */
+
+.cart-item-actions button {
+  min-width: 44px;
+  min-height: 44px;
+  touch-action: manipulation;
+}
+
+.product-plus {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.category-button,
+.product-card,
+.free-item-open,
+.draft-hold-button,
+.finish-button,
+.complete-order-button {
+  touch-action: manipulation;
+}
+
+.category-button:active,
+.free-item-open:active,
+.draft-hold-button:active,
+.finish-button:active:not(:disabled),
+.complete-order-button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Récapitulatif accessible pendant le défilement. */
+
+@media (min-width: 701px) {
+  .workspace {
+    align-items: start;
+  }
+
+  .order-panel {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    max-height: 100dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .order-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    background: white;
+    padding-bottom: max(
+      12px,
+      env(safe-area-inset-bottom)
+    );
+  }
+}
+
+/* Sur téléphone, conserver un défilement naturel. */
+
+@media (max-width: 700px) {
+  .order-main-column {
+    gap: 12px;
+  }
+
+  .order-main-column > .draft-workspace {
+    margin: 0 14px 18px;
+  }
+
+  .order-panel {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+/* Éviter les débordements horizontaux. */
+
+.order-main-column,
+.order-panel,
+.draft-workspace,
+.order-items,
+.active-orders,
+.completed-orders {
+  min-width: 0;
+}
+
+.order-item,
+.draft-row,
+.active-order-card,
+.completed-order-card {
+  overflow-wrap: anywhere;
+}

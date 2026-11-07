@@ -694,6 +694,7 @@ export default function App() {
         </div>
       ) : (
         <div className="workspace">
+          <div className="order-main-column">
           {categories === undefined || products === undefined ? (
             <section className="catalogue-panel">
               <p role="status">Chargement du catalogue...</p>
@@ -738,6 +739,8 @@ export default function App() {
 
             <ActiveOrders />
             <CompletedOrders />
+          </div>
+
           </div>
 
           <OrderSummary
