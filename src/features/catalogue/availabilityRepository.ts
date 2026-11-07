@@ -7,8 +7,8 @@ export async function setProductAvailability(
   await db.transaction('rw', db.products, async () => {
     const product = await db.products.get(id)
 
-    if (!product) {
-      throw new Error('Produit introuvable.')
+    if (!product || product.archived) {
+      throw new Error('Produit introuvable ou archivé.')
     }
 
     await db.products.update(id, { active })
@@ -38,7 +38,7 @@ export async function getAvailableOptionsForProduct(
 ) {
   const product = await db.products.get(productId)
 
-  if (!product || !product.active) {
+  if (!product || !product.active || product.archived) {
     return []
   }
 

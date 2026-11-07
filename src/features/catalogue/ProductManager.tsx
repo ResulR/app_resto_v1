@@ -10,6 +10,7 @@ import {
   createProduct,
   updateProduct,
   moveProduct,
+  archiveProduct,
 } from './productRepository'
 
 type FormState = {
@@ -55,7 +56,9 @@ export function ProductManager() {
     (category) => category.active,
   ) ?? []
 
-  const orderedProducts = [...(products ?? [])].sort((a, b) => {
+  const orderedProducts = [...(products ?? [])]
+    .filter(product => !product.archived)
+    .sort((a, b) => {
     const categoryA = categories?.findIndex(
       (category) => category.id === a.categoryId,
     ) ?? 0
@@ -115,6 +118,24 @@ export function ProductManager() {
 
     setError('')
     setSuccess('')
+  }
+
+  function archive(product: Product) {
+    const confirmed = window.confirm(
+      `Retirer définitivement « ${product.name} » du catalogue ? ` +
+      'Le produit ne pourra plus être réactivé.'
+    )
+
+    if (!confirmed) return
+
+    void execute(async () => {
+      await archiveProduct(product.id)
+
+      if (editingId === product.id) {
+        setEditingId(null)
+        setForm(emptyForm)
+      }
+    })
   }
 
   function cancelEdit() {
@@ -261,6 +282,16 @@ export function ProductManager() {
               </div>
 
               <div className="category-actions product-actions">
+                <button
+                  type="button"
+                  className="archive-product-button"
+                  disabled={busy}
+                  aria-label={`Retirer définitivement ${product.name}`}
+                  onClick={() => archive(product)}
+                >
+                  Retirer
+                </button>
+
                 <button
                   type="button"
                   className={

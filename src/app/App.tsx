@@ -355,6 +355,7 @@ export default function App() {
     .filter(
       product =>
         product.active &&
+        !product.archived &&
         activeCategoryIds.has(product.categoryId),
     )
     .sort((a, b) => a.position - b.position)
@@ -389,8 +390,8 @@ export default function App() {
     try {
       const currentProduct = await db.products.get(product.id)
 
-      if (!currentProduct?.active) {
-        throw new Error('Ce produit est indisponible.')
+      if (!currentProduct?.active || currentProduct.archived) {
+        throw new Error('Ce produit est indisponible ou retiré.')
       }
 
       setEditingItemId(null)

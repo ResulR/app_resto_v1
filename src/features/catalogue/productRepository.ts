@@ -87,8 +87,8 @@ export async function updateProduct(
     const existing = await db.products.get(id)
     const category = await db.categories.get(parsed.categoryId)
 
-    if (!existing) {
-      throw new Error('Produit introuvable.')
+    if (!existing || existing.archived) {
+      throw new Error('Produit introuvable ou archivé.')
     }
 
     if (!category || !category.active) {
@@ -124,14 +124,15 @@ export async function moveProduct(
   await db.transaction('rw', db.products, async () => {
     const current = await db.products.get(id)
 
-    if (!current) {
-      throw new Error('Produit introuvable.')
+    if (!current || current.archived) {
+      throw new Error('Produit introuvable ou archivé.')
     }
 
-    const products = await db.products
+    const products = (await db.products
       .where('categoryId')
       .equals(current.categoryId)
-      .sortBy('position')
+      .sortBy('position'))
+      .filter(product => !product.archived)
 
     const index = products.findIndex((product) => product.id === id)
     const targetIndex = index + direction
@@ -167,6 +168,25 @@ export async function moveProduct(
   })
 }
 
+export async function archiveProduct(id: string): Promise<void> {
+  await db.transaction('rw', db.products, async () => {
+    const product = await db.products.get(id)
+
+    if (!product || product.archived) {
+      throw new Error('Produit introuvable ou déjà archivé.')
+    }
+
+    // Conservation de l'enregistrement : pas de suppression physique.
+    // Les futures commandes pourront conserver leurs instantanés.
+    await db.products.update(id, {
+      archived: true,
+      active: false,
+    })
+  })
+}
+
 export async function listProducts(): Promise<Product[]> {
-  return db.products.orderBy('position').toArray()
+  const products = await db.products.orderBy('position').toArray()
+
+  return products.filter(product => !product.archived)
 }

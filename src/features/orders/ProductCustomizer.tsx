@@ -93,8 +93,8 @@ export function ProductCustomizer({
     try {
       const currentProduct = await db.products.get(product.id)
 
-      if (!currentProduct?.active) {
-        throw new Error('Ce produit est indisponible.')
+      if (!currentProduct?.active || currentProduct.archived) {
+        throw new Error('Ce produit est indisponible ou retiré.')
       }
 
       const available = await getAvailableOptionsForProduct(product.id)

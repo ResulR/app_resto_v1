@@ -13,6 +13,7 @@ export interface Product {
   priceCents?: number
   position: number
   active: boolean
+  archived?: boolean
 }
 
 export interface ProductVariant {
