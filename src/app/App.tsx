@@ -33,7 +33,7 @@ import {
   type OrderDraft,
 } from '../features/orders/draftRepository'
 import {
-  confirmOrder,
+  confirmOrRecoverOrder,
   getLatestConfirmedOrder,
   type ConfirmedOrder,
   type ConsumptionMode,
@@ -542,7 +542,7 @@ export default function App() {
     pendingOrderId.current = id
 
     try {
-      const saved = await confirmOrder({
+      const saved = await confirmOrRecoverOrder({
         id,
         items,
         comment,

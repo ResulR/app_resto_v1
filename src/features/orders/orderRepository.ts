@@ -85,6 +85,26 @@ export async function confirmOrder(
   return structuredClone(order)
 }
 
+/**
+ * Réutilise une commande déjà enregistrée avec le même identifiant.
+ *
+ * Utile lorsque l'écriture a réussi mais que l'interface
+ * n'a pas reçu sa confirmation.
+ *
+ * Ne modifie jamais le contenu d'une commande existante.
+ */
+export async function confirmOrRecoverOrder(
+  input: ConfirmOrderInput,
+): Promise<ConfirmedOrder> {
+  const existing = await getConfirmedOrder(input.id)
+
+  if (existing) {
+    return existing
+  }
+
+  return confirmOrder(input)
+}
+
 export async function getConfirmedOrder(
   id: string,
 ): Promise<ConfirmedOrder | undefined> {
