@@ -6,13 +6,22 @@ export async function getCatalogue() {
     db.products.toArray(),
   ])
 
-  return {
-    categories: categories
-      .filter((category) => category.active)
-      .sort((a, b) => a.position - b.position),
+  const activeCategories = categories
+    .filter((category) => category.active)
+    .sort((a, b) => a.position - b.position)
 
+  const activeCategoryIds = new Set(
+    activeCategories.map((category) => category.id),
+  )
+
+  return {
+    categories: activeCategories,
     products: products
-      .filter((product) => product.active)
+      .filter(
+        (product) =>
+          product.active &&
+          activeCategoryIds.has(product.categoryId),
+      )
       .sort((a, b) => a.position - b.position),
   }
 }

@@ -66,9 +66,15 @@ export default function App() {
     [],
   )
 
-  const displayedProducts = liveProducts?.filter(
-    (product) => product.active,
-  ) ?? products
+  const activeCategoryIds = new Set(
+    displayedCategories.map((category) => category.id),
+  )
+
+  const displayedProducts = (liveProducts ?? products).filter(
+    (product) =>
+      product.active &&
+      activeCategoryIds.has(product.categoryId),
+  )
 
   const visibleProducts = displayedProducts.filter(
     (product) =>
