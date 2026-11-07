@@ -20,6 +20,7 @@ type Props = {
   onConfirm: (
     product: Product,
     options: SelectedOption[],
+    note: string,
   ) => void
 }
 
@@ -36,6 +37,7 @@ export function ProductCustomizer({
   onConfirm,
 }: Props) {
   const [selected, setSelected] = useState<string[]>([])
+  const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
@@ -112,7 +114,7 @@ export function ProductCustomizer({
           priceCents: option.priceCents,
         }))
 
-      onConfirm(currentProduct, choices)
+      onConfirm(currentProduct, choices, note.trim())
     } catch (cause) {
       setError(
         cause instanceof Error
@@ -216,6 +218,22 @@ export function ProductCustomizer({
           {data?.options.length === 0 && (
             <p>Aucune option disponible pour ce produit.</p>
           )}
+        </div>
+
+        <div className="item-note-field">
+          <label htmlFor="item-note">
+            Note pour cet article (facultatif)
+          </label>
+
+          <textarea
+            id="item-note"
+            rows={3}
+            maxLength={1000}
+            value={note}
+            disabled={busy}
+            placeholder="Ex. Bien cuit, sans sel..."
+            onChange={event => setNote(event.target.value)}
+          />
         </div>
 
         {error && (

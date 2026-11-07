@@ -14,7 +14,6 @@ import {
   ProductCustomizer,
   type SelectedOption,
 } from '../features/orders/ProductCustomizer'
-import { getAvailableOptionsForProduct } from '../features/catalogue/availabilityRepository'
 
 import './RestaurantLayout.css'
 
@@ -27,6 +26,7 @@ type CartItem = {
   name: string
   priceCents?: number
   options: SelectedOption[]
+  note: string
 }
 
 function formatPrice(cents: number) {
@@ -145,8 +145,12 @@ function OrderCatalogue({
 
 function OrderSummary({
   items,
+  comment,
+  onCommentChange,
 }: {
   items: CartItem[]
+  comment: string
+  onCommentChange: (value: string) => void
 }) {
   const knownTotal = items.reduce(
     (sum, item) =>
@@ -203,6 +207,12 @@ function OrderSummary({
                     {option.groupName} : {option.name}
                   </span>
                 ))}
+
+                {item.note && (
+                  <span className="order-item-note">
+                    Note : {item.note}
+                  </span>
+                )}
               </div>
 
               <strong className="item-price">
@@ -224,6 +234,21 @@ function OrderSummary({
       </div>
 
       <div className="order-footer">
+        <div className="order-comment-field">
+          <label htmlFor="order-comment">
+            Commentaire général (facultatif)
+          </label>
+
+          <textarea
+            id="order-comment"
+            rows={3}
+            maxLength={2000}
+            value={comment}
+            placeholder="Instructions pour toute la commande..."
+            onChange={event => onCommentChange(event.target.value)}
+          />
+        </div>
+
         {items.length > 0 && (
           <>
             <div className="total-row">
@@ -269,6 +294,7 @@ export default function App() {
     useState<SettingsTab>('categories')
 
   const [items, setItems] = useState<CartItem[]>([])
+  const [comment, setComment] = useState('')
   const [customizing, setCustomizing] = useState<Product | null>(null)
   const [orderError, setOrderError] = useState('')
 
@@ -300,6 +326,7 @@ export default function App() {
   function appendProduct(
     product: Product,
     options: SelectedOption[] = [],
+    note = '',
   ) {
     setItems(current => [
       ...current,
@@ -309,6 +336,7 @@ export default function App() {
         name: product.name,
         priceCents: product.priceCents,
         options,
+        note,
       },
     ])
   }
@@ -323,13 +351,7 @@ export default function App() {
         throw new Error('Ce produit est indisponible.')
       }
 
-      const options = await getAvailableOptionsForProduct(product.id)
-
-      if (options.length > 0) {
-        setCustomizing(currentProduct)
-      } else {
-        appendProduct(currentProduct)
-      }
+      setCustomizing(currentProduct)
     } catch (cause) {
       setOrderError(
         cause instanceof Error
@@ -429,7 +451,11 @@ export default function App() {
             />
           )}
 
-          <OrderSummary items={items} />
+          <OrderSummary
+            items={items}
+            comment={comment}
+            onCommentChange={setComment}
+          />
         </div>
       )}
 
@@ -443,8 +469,8 @@ export default function App() {
         <ProductCustomizer
           product={customizing}
           onCancel={() => setCustomizing(null)}
-          onConfirm={(product, options) => {
-            appendProduct(product, options)
+          onConfirm={(product, options, note) => {
+            appendProduct(product, options, note)
             setCustomizing(null)
           }}
         />

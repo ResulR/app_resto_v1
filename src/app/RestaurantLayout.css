@@ -970,3 +970,51 @@ button:focus-visible {
     flex-direction: column;
   }
 }
+
+.item-note-field,
+.order-comment-field {
+  display: grid;
+  gap: 9px;
+}
+
+.item-note-field {
+  padding: 15px 0;
+  border-top: 1px solid #e8ebf0;
+}
+
+.order-comment-field {
+  margin-bottom: 22px;
+}
+
+.item-note-field label,
+.order-comment-field label {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.item-note-field textarea,
+.order-comment-field textarea {
+  width: 100%;
+  min-height: 78px;
+  padding: 12px;
+  border: 1px solid #dce3ec;
+  border-radius: 10px;
+  background: white;
+  color: #1c2936;
+  font: inherit;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.item-note-field textarea:focus,
+.order-comment-field textarea:focus {
+  outline: 2px solid #7aa8ff;
+  outline-offset: 2px;
+}
+
+.order-item-note {
+  color: #5f6d80 !important;
+  font-style: italic;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
