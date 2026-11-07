@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import {
   listActiveOrders,
+  completeOrder,
   type ConfirmedOrder,
 } from './orderRepository'
 
@@ -29,6 +31,28 @@ export function ActiveOrders() {
     [],
   )
 
+  const [busyId, setBusyId] = useState<string | null>(null)
+  const [error, setError] = useState('')
+
+  async function finish(id: string) {
+    if (busyId !== null) return
+
+    setBusyId(id)
+    setError('')
+
+    try {
+      await completeOrder(id)
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : 'Impossible de terminer la commande.',
+      )
+    } finally {
+      setBusyId(null)
+    }
+  }
+
   return (
     <section
       className="active-orders"
@@ -53,6 +77,12 @@ export function ActiveOrders() {
         <div className="empty-catalogue">
           Aucune commande active.
         </div>
+      )}
+
+      {error && (
+        <p className="category-error" role="alert">
+          {error}
+        </p>
       )}
 
       <div className="active-orders-list">
@@ -95,6 +125,18 @@ export function ActiveOrders() {
                   {formatPrice(order.knownTotalCents)}
                 </strong>
               </div>
+
+              <button
+                type="button"
+                className="complete-order-button"
+                disabled={busyId !== null}
+                onClick={() => void finish(order.id)}
+                aria-label={`Terminer la commande ${displayNumber(order)}`}
+              >
+                {busyId === order.id
+                  ? 'Enregistrement...'
+                  : '✓ TERMINÉE'}
+              </button>
 
               <details className="active-order-details">
                 <summary>Voir les détails</summary>

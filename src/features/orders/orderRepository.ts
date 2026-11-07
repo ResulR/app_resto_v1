@@ -7,7 +7,8 @@ export type ConsumptionMode = 'sur_place' | 'emporter' | null
 export type ConfirmedOrder = {
   id: string
   createdAt: string
-  status: 'validated'
+  status: 'validated' | 'completed'
+  completedAt?: string
   items: CartItem[]
   comment: string
   consumptionMode: ConsumptionMode
@@ -86,6 +87,38 @@ export async function getConfirmedOrder(
 ): Promise<ConfirmedOrder | undefined> {
   const order = await orders().get(id)
   return order ? structuredClone(order) : undefined
+}
+
+export async function completeOrder(
+  id: string,
+): Promise<ConfirmedOrder> {
+  if (!id) {
+    throw new Error('Identifiant de commande manquant.')
+  }
+
+  return db.transaction('rw', orders(), async () => {
+    const existing = await orders().get(id)
+
+    if (!existing) {
+      throw new Error('Commande introuvable.')
+    }
+
+    if (existing.status !== 'validated') {
+      throw new Error('Cette commande est déjà terminée.')
+    }
+
+    // Ne changer que les métadonnées de suivi.
+    // Les articles, prix et personnalisations sont préservés.
+    const completed: ConfirmedOrder = {
+      ...existing,
+      status: 'completed',
+      completedAt: new Date().toISOString(),
+    }
+
+    await orders().put(completed)
+
+    return structuredClone(completed)
+  })
 }
 
 export async function listActiveOrders(): Promise<ConfirmedOrder[]> {

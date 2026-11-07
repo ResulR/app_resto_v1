@@ -1423,3 +1423,35 @@ button:focus-visible {
   font-size: 12px;
   color: #65758b;
 }
+
+.complete-order-button {
+  display: block;
+  width: 100%;
+  min-height: 54px;
+  margin: 8px 0 14px;
+  padding: 12px 16px;
+  border: 1px solid #167347;
+  border-radius: 11px;
+  background: #167347;
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.025em;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.complete-order-button:hover:not(:disabled) {
+  background: #105c38;
+}
+
+.complete-order-button:focus-visible {
+  outline: 3px solid #7aa8ff;
+  outline-offset: 3px;
+}
+
+.complete-order-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
