@@ -5,7 +5,7 @@ import pg from 'pg'
 import { createApp } from './app.js'
 
 const host = '127.0.0.1'
-const port = 4600
+const port = 4601
 
 const origin = process.env.RESTAURANT_ALLOWED_ORIGIN
 
