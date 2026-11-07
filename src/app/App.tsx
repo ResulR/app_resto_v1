@@ -24,6 +24,12 @@ import {
   type FreeItemInput,
 } from '../features/orders/cart'
 import { FreeItemForm } from '../features/orders/FreeItemForm'
+import { DraftManager } from '../features/orders/DraftManager'
+import {
+  saveDraft,
+  deleteDraft,
+  type OrderDraft,
+} from '../features/orders/draftRepository'
 import {
   confirmOrder,
   getLatestConfirmedOrder,
@@ -402,6 +408,10 @@ export default function App() {
 
   const [items, setItems] = useState<CartItem[]>([])
   const [saving, setSaving] = useState(false)
+  const [activeDraftId, setActiveDraftId] =
+    useState<string | null>(null)
+  const [draftBusy, setDraftBusy] = useState(false)
+  const [draftError, setDraftError] = useState('')
   const [confirmedOrder, setConfirmedOrder] =
     useState<ConfirmedOrder | null>(null)
   const validationLock = useRef(false)
@@ -459,6 +469,65 @@ export default function App() {
     setFreeItemOpen(false)
   }
 
+  async function holdOrder() {
+    if (
+      draftBusy ||
+      saving ||
+      validationLock.current ||
+      (items.length === 0 && !comment.trim())
+    ) return
+
+    setDraftBusy(true)
+    setDraftError('')
+
+    try {
+      const id = activeDraftId ?? crypto.randomUUID()
+
+      await saveDraft({
+        id,
+        items,
+        comment,
+        consumptionMode,
+      })
+
+      setItems([])
+      setComment('')
+      setConsumptionMode(null)
+      setActiveDraftId(null)
+      pendingOrderId.current = null
+    } catch (cause) {
+      setDraftError(
+        cause instanceof Error
+          ? cause.message
+          : 'Impossible de mettre la commande en attente.',
+      )
+    } finally {
+      setDraftBusy(false)
+    }
+  }
+
+  function resumeDraft(draft: OrderDraft) {
+    if (
+      saving ||
+      draftBusy ||
+      validationLock.current
+    ) return
+
+    if (items.length > 0 || comment.trim()) {
+      setDraftError(
+        'Mettez d’abord la commande actuelle en attente.',
+      )
+      return
+    }
+
+    setItems(structuredClone(draft.items))
+    setComment(draft.comment)
+    setConsumptionMode(draft.consumptionMode)
+    setActiveDraftId(draft.id)
+    pendingOrderId.current = null
+    setDraftError('')
+  }
+
   async function finishOrder() {
     // Verrou synchrone : protège contre les doubles clics.
     if (validationLock.current || items.length === 0) return
@@ -483,6 +552,17 @@ export default function App() {
       setComment('')
       setConsumptionMode(null)
       pendingOrderId.current = null
+
+      if (activeDraftId) {
+        try {
+          await deleteDraft(activeDraftId)
+        } catch {
+          // La commande validée est sauvegardée.
+          // Un nettoyage ultérieur pourra retirer ce brouillon.
+        }
+      }
+
+      setActiveDraftId(null)
     } catch (cause) {
       setOrderError(
         cause instanceof Error
@@ -622,6 +702,36 @@ export default function App() {
               onAddFree={() => setFreeItemOpen(true)}
             />
           )}
+
+          <div className="draft-workspace">
+            <div className="draft-toolbar">
+              <button
+                type="button"
+                className="draft-hold-button"
+                disabled={
+                  draftBusy ||
+                  saving ||
+                  (items.length === 0 && !comment.trim())
+                }
+                onClick={() => void holdOrder()}
+              >
+                {draftBusy
+                  ? 'Enregistrement...'
+                  : 'Mettre en attente'}
+              </button>
+            </div>
+
+            {draftError && (
+              <p className="category-error" role="alert">
+                {draftError}
+              </p>
+            )}
+
+            <DraftManager
+              activeDraftId={activeDraftId}
+              onResume={resumeDraft}
+            />
+          </div>
 
           <OrderSummary
             items={items}

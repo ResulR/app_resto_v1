@@ -1221,3 +1221,88 @@ button:focus-visible {
   font-weight: 700;
   cursor: pointer;
 }
+
+.draft-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 16px;
+  background: #f7f9fc;
+  border: 1px solid #e8ebf0;
+  border-radius: 14px;
+}
+
+.draft-toolbar {
+  display: flex;
+  gap: 10px;
+}
+
+.draft-hold-button {
+  min-height: 48px;
+  padding: 11px 16px;
+  border: 1px solid #c5d8f3;
+  border-radius: 10px;
+  background: #edf3ff;
+  color: #2452a1;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.draft-hold-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.draft-list {
+  display: grid;
+  gap: 9px;
+}
+
+.draft-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #e8ebf0;
+  border-radius: 10px;
+  background: white;
+}
+
+.draft-info {
+  display: grid;
+  gap: 5px;
+  font-size: 13px;
+}
+
+.draft-info span {
+  color: #748294;
+}
+
+.draft-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.draft-actions button {
+  min-height: 44px;
+  padding: 9px 11px;
+  border: 1px solid #dce3ec;
+  border-radius: 9px;
+  background: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.draft-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 750px) {
+  .draft-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
