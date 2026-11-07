@@ -1567,3 +1567,10 @@ button:focus-visible {
   color: #65758b;
   font-size: 12px;
 }
+
+.confirmed-order-id {
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  font-weight: 700;
+  color: #2452a1;
+}

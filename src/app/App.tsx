@@ -567,9 +567,11 @@ export default function App() {
       setActiveDraftId(null)
     } catch (cause) {
       setOrderError(
-        cause instanceof Error
+        'Commande non enregistrée. Vérifiez le stockage ' +
+        'de cet appareil puis réessayez. Détail : ' +
+        (cause instanceof Error
           ? cause.message
-          : 'Impossible de valider la commande.',
+          : 'Erreur de stockage inconnue.'),
       )
     } finally {
       validationLock.current = false
@@ -770,6 +772,10 @@ export default function App() {
             <h2 id="confirmed-title">
               Commande enregistrée
             </h2>
+
+            <p className="confirmed-order-id">
+              N° {confirmedOrder.id.toUpperCase()}
+            </p>
 
             <p>
               Enregistrée le{' '}

@@ -54,7 +54,7 @@ export function CompletedOrders() {
             <div className="completed-order-header">
               <div className="completed-order-identity">
                 <strong title={order.id}>
-                  Commande #{order.id.slice(0, 8).toUpperCase()}
+                  Commande #{order.id.toUpperCase()}
                 </strong>
 
                 <span>

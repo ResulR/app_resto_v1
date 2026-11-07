@@ -22,7 +22,7 @@ function formatDate(value: string) {
 }
 
 function displayNumber(order: ConfirmedOrder) {
-  return order.id.slice(0, 8).toUpperCase()
+  return order.id.toUpperCase()
 }
 
 export function ActiveOrders() {

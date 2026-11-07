@@ -28,8 +28,11 @@ const orders = () => db.table<ConfirmedOrder, string>('orders')
 export async function confirmOrder(
   input: ConfirmOrderInput,
 ): Promise<ConfirmedOrder> {
-  if (!input.id) {
-    throw new Error('Identifiant de commande manquant.')
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+      .test(input.id)
+  ) {
+    throw new Error('Identifiant de commande invalide.')
   }
 
   if (!input.items.length) {
