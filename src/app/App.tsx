@@ -17,10 +17,13 @@ import {
 
 import {
   addToCart,
+  addFreeItem,
   changeCartQuantity,
   editCartUnit,
   type CartItem,
+  type FreeItemInput,
 } from '../features/orders/cart'
+import { FreeItemForm } from '../features/orders/FreeItemForm'
 
 import './RestaurantLayout.css'
 
@@ -39,10 +42,12 @@ function OrderCatalogue({
   categories,
   products,
   onAdd,
+  onAddFree,
 }: {
   categories: Category[]
   products: Product[]
   onAdd: (product: Product) => void
+  onAddFree: () => void
 }) {
   const [activeCategory, setActiveCategory] = useState('all')
 
@@ -58,6 +63,16 @@ function OrderCatalogue({
         <span className="eyebrow">ESPACE DE VENTE</span>
         <h1>Nouvelle commande</h1>
         <p>Sélectionnez les produits de la commande.</p>
+      </div>
+
+      <div className="free-item-toolbar">
+        <button
+          type="button"
+          className="free-item-open"
+          onClick={onAddFree}
+        >
+          + Produit libre
+        </button>
       </div>
 
       <div className="categories" aria-label="Catégories">
@@ -238,13 +253,15 @@ function OrderSummary({
                     +
                   </button>
 
-                  <button
-                    type="button"
-                    className="cart-edit-button"
-                    onClick={() => onEdit(item)}
-                  >
-                    Modifier
-                  </button>
+                  {!item.productId.startsWith('free:') && (
+                    <button
+                      type="button"
+                      className="cart-edit-button"
+                      onClick={() => onEdit(item)}
+                    >
+                      Modifier
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -332,6 +349,7 @@ export default function App() {
   const [comment, setComment] = useState('')
   const [customizing, setCustomizing] = useState<Product | null>(null)
   const [editingItemId, setEditingItemId] = useState<string | null>(null)
+  const [freeItemOpen, setFreeItemOpen] = useState(false)
   const [orderError, setOrderError] = useState('')
 
   const categories = useLiveQuery(
@@ -366,6 +384,12 @@ export default function App() {
     note = '',
   ) {
     setItems(current => addToCart(current, product, options, note))
+  }
+
+  function appendFreeItem(input: FreeItemInput) {
+    // Validation synchrone avant de fermer le formulaire.
+    setItems(current => addFreeItem(current, input))
+    setFreeItemOpen(false)
   }
 
   function changeQuantity(id: string, delta: 1 | -1) {
@@ -492,6 +516,7 @@ export default function App() {
               categories={activeCategories}
               products={activeProducts}
               onAdd={addProduct}
+              onAddFree={() => setFreeItemOpen(true)}
             />
           )}
 
@@ -509,6 +534,13 @@ export default function App() {
         <p className="order-action-error" role="alert">
           {orderError}
         </p>
+      )}
+
+      {freeItemOpen && (
+        <FreeItemForm
+          onCancel={() => setFreeItemOpen(false)}
+          onConfirm={appendFreeItem}
+        />
       )}
 
       {customizing && (

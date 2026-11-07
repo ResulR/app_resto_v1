@@ -105,3 +105,75 @@ export function editCartUnit(
 
   return addToCart(remaining, product, options, note)
 }
+
+export type FreeItemInput = {
+  name: string
+  quantity: number
+  price: string
+  note: string
+}
+
+export function addFreeItem(
+  items: CartItem[],
+  input: FreeItemInput,
+): CartItem[] {
+  const name = input.name.trim().replace(/\s+/g, ' ')
+
+  if (!name || name.length > 120) {
+    throw new Error('Nom requis : 1 à 120 caractères.')
+  }
+
+  if (
+    !Number.isSafeInteger(input.quantity) ||
+    input.quantity < 1 ||
+    input.quantity > 999
+  ) {
+    throw new Error('Quantité invalide : 1 à 999.')
+  }
+
+  if (input.note.length > 1000) {
+    throw new Error('Note trop longue.')
+  }
+
+  const raw = input.price.trim()
+  let priceCents: number | undefined
+
+  if (raw !== '') {
+    const normalized = raw.replace(',', '.')
+
+    if (!/^\d+(?:\.\d{1,2})?$/.test(normalized)) {
+      throw new Error('Prix invalide. Exemple : 4,50')
+    }
+
+    const [euros, cents = ''] = normalized.split('.')
+
+    const calculated =
+      Number(euros) * 100 + Number(cents.padEnd(2, '0'))
+
+    if (
+      !Number.isSafeInteger(calculated) ||
+      calculated > 100000000
+    ) {
+      throw new Error('Prix trop élevé.')
+    }
+
+    priceCents = calculated
+  }
+
+  const id = crypto.randomUUID()
+
+  // Identifiant unique : aucune création dans le catalogue.
+  // Chaque saisie libre reste une ligne indépendante.
+  return [
+    ...items,
+    {
+      id,
+      productId: `free:${id}`,
+      name,
+      priceCents,
+      options: [],
+      note: input.note.trim(),
+      quantity: input.quantity,
+    },
+  ]
+}
