@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import { db } from '../../shared/database/db'
+import { VariantManager } from './VariantManager'
 import type { Product } from '../../shared/database/models'
 
 import {
@@ -44,6 +45,7 @@ export function ProductManager() {
 
   const [form, setForm] = useState<FormState>(emptyForm)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [variantProductId, setVariantProductId] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -119,6 +121,20 @@ export function ProductManager() {
     setForm(emptyForm)
     setError('')
     setSuccess('')
+  }
+
+  const variantProduct = products?.find(
+    product => product.id === variantProductId,
+  )
+
+  if (variantProduct) {
+    return (
+      <VariantManager
+        productId={variantProduct.id}
+        productName={variantProduct.name}
+        onClose={() => setVariantProductId(null)}
+      />
+    )
   }
 
   return (
@@ -238,7 +254,15 @@ export function ProductManager() {
                 </span>
               </div>
 
-              <div className="category-actions">
+              <div className="category-actions product-actions">
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => setVariantProductId(product.id)}
+                >
+                  Variantes
+                </button>
+
                 <button
                   type="button"
                   aria-label={`Monter ${product.name}`}
