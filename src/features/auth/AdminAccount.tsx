@@ -6,7 +6,10 @@ import {
   logoutAdmin,
 } from './authClient'
 import { resolveGuardedAccess } from './accessController'
-import { AUTH_LOCK_EVENT } from './AccessGate'
+import {
+  AUTH_LOCK_EVENT,
+  AUTH_CHANGED_EVENT,
+} from './AccessGate'
 import {
   beginLogout,
   completePendingLogout,
@@ -196,6 +199,10 @@ export function AdminAccount() {
       } else {
         setState('anonymous')
         setMessage('Déconnexion effectuée.')
+
+        // La session serveur est révoquée et le marqueur
+        // local a été supprimé : quitter l'écran d'attente.
+        window.dispatchEvent(new Event(AUTH_CHANGED_EVENT))
       }
     } catch (cause) {
       // Si le marqueur a été enregistré avant l'erreur,
