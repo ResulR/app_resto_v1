@@ -70,3 +70,43 @@ export async function resolveAccess(
     }
   }
 }
+
+
+/**
+ * Porte d'entrée destinée à l'application.
+ *
+ * La présence d'une déconnexion en attente interdit l'accès,
+ * y compris si le serveur possède encore un cookie valide.
+ * La fin de la révocation ne rouvre jamais automatiquement
+ * l'application : une nouvelle connexion sera nécessaire.
+ */
+export async function resolveGuardedAccess(
+  access: AccessDependencies,
+  logout: {
+    hasPendingLogout: () => boolean
+    completePendingLogout: () => Promise<unknown>
+  },
+): Promise<AccessDecision> {
+  try {
+    if (logout.hasPendingLogout()) {
+      try {
+        await logout.completePendingLogout()
+      } catch {
+        // Même si la révocation échoue, rester verrouillé.
+      }
+
+      return {
+        status: 'locked',
+        reason: 'session-invalid',
+      }
+    }
+  } catch {
+    // Stockage local inaccessible : refuser l'accès.
+    return {
+      status: 'locked',
+      reason: 'offline-unavailable',
+    }
+  }
+
+  return resolveAccess(access)
+}
