@@ -15,6 +15,42 @@ const attempts = new Map<string, {
   until: number
 }>()
 
+const WINDOW_MS = 15 * 60 * 1000
+const MAX_ATTEMPTS = 5
+const MAX_TRACKED_IPS = 2048
+
+function registerFailure(ip: string, now: number): void {
+  const existing = attempts.get(ip)
+  const count =
+    existing && existing.until > now
+      ? existing.count + 1
+      : 1
+
+  attempts.set(ip, {
+    count,
+    until: now + WINDOW_MS,
+  })
+}
+
+function isRateLimited(ip: string, now: number): boolean {
+  // Nettoyer les entrées expirées pour limiter la mémoire.
+  for (const [key, entry] of attempts) {
+    if (entry.until <= now) {
+      attempts.delete(key)
+    }
+  }
+
+  const state = attempts.get(ip)
+
+  if (state && state.count >= MAX_ATTEMPTS) {
+    return true
+  }
+
+  // En cas de saturation, refuser de nouvelles sources
+  // plutôt que laisser croître indéfiniment la Map.
+  return !state && attempts.size >= MAX_TRACKED_IPS
+}
+
 function cookieValue(token: string): string {
   return `${COOKIE}=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${SESSION_SECONDS}`
 }
@@ -37,9 +73,7 @@ export function createAuthRouter(pool: Pool): Router {
   router.post('/login', async (request, response) => {
     const ip = request.ip ?? 'unknown'
     const now = Date.now()
-    const state = attempts.get(ip)
-
-    if (state && state.until > now && state.count >= 5) {
+    if (isRateLimited(ip, now)) {
       response.status(429).json({
         error: 'Trop de tentatives. Réessayez plus tard.',
       })
@@ -53,6 +87,8 @@ export function createAuthRouter(pool: Pool): Router {
       password.length < 1 ||
       password.length > 1024
     ) {
+      registerFailure(ip, now)
+
       response.status(400).json({
         error: 'Mot de passe invalide.',
       })
@@ -73,13 +109,7 @@ export function createAuthRouter(pool: Pool): Router {
         : false
 
       if (!valid) {
-        const previous =
-          state && state.until > now ? state.count : 0
-
-        attempts.set(ip, {
-          count: previous + 1,
-          until: now + 15 * 60 * 1000,
-        })
+        registerFailure(ip, now)
 
         response.status(401).json({
           error: 'Identifiants incorrects.',
