@@ -1,4 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
+import { TicketPreview } from './TicketPreview'
 import { listCompletedOrders } from './orderRepository'
 
 function formatPrice(cents: number) {
@@ -95,6 +96,13 @@ export function CompletedOrders() {
               <summary>Consulter la commande</summary>
 
               <div className="completed-order-content">
+                  <details className="preparation-ticket-details">
+                    <summary>
+                      Aperçu du ticket de préparation
+                    </summary>
+                    <TicketPreview order={order} />
+                  </details>
+
                 {order.items.map(item => (
                   <div
                     key={item.id}

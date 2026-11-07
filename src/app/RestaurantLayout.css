@@ -1686,3 +1686,47 @@ button:focus-visible {
 .completed-order-card {
   overflow-wrap: anywhere;
 }
+
+/* Point 6.1 — aperçu du ticket de préparation */
+
+.preparation-ticket-details {
+  min-width: 0;
+  padding: 10px 0;
+  border-top: 1px solid #e8ebf0;
+}
+
+.preparation-ticket-details > summary {
+  min-height: 44px;
+  cursor: pointer;
+  color: #2452a1;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ticket-preview {
+  max-width: 360px;
+  margin: 10px auto;
+  padding: 16px 12px;
+  border: 1px solid #dce3ec;
+  border-radius: 8px;
+  background: #fff;
+  color: #171717;
+}
+
+.ticket-preview-content {
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.ticket-preview-note {
+  margin: 14px 0 0;
+  padding-top: 10px;
+  border-top: 1px dashed #dce3ec;
+  color: #65758b;
+  font-size: 11px;
+  line-height: 1.5;
+}

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
+import { TicketPreview } from './TicketPreview'
 
 import {
   listActiveOrders,
@@ -142,6 +143,13 @@ export function ActiveOrders() {
                 <summary>Voir les détails</summary>
 
                 <div className="active-order-content">
+                  <details className="preparation-ticket-details">
+                    <summary>
+                      Aperçu du ticket de préparation
+                    </summary>
+                    <TicketPreview order={order} />
+                  </details>
+
                   {order.items.map(item => (
                     <div
                       className="active-order-item"
