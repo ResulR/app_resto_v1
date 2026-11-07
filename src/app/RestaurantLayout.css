@@ -1306,3 +1306,120 @@ button:focus-visible {
     align-items: stretch;
   }
 }
+
+.active-orders {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.active-orders .products-heading {
+  margin: 4px 0 0;
+}
+
+.active-orders-list {
+  display: grid;
+  gap: 12px;
+}
+
+.active-order-card {
+  min-width: 0;
+  padding: 15px;
+  border: 1px solid #e0e7ef;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.active-order-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.active-order-identity {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.active-order-identity strong {
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+.active-order-identity span {
+  color: #728196;
+  font-size: 12px;
+}
+
+.active-order-status {
+  padding: 6px 9px;
+  border-radius: 8px;
+  background: #e8f7ee;
+  color: #167347;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.active-order-summary {
+  display: grid;
+  gap: 7px;
+  padding: 13px 0;
+  font-size: 13px;
+}
+
+.active-order-summary > span {
+  color: #65758b;
+}
+
+.active-order-details {
+  border-top: 1px solid #e8ebf0;
+  padding-top: 12px;
+}
+
+.active-order-details summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: #2452a1;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.active-order-content {
+  display: grid;
+  gap: 12px;
+  padding: 10px 0;
+  overflow-wrap: anywhere;
+}
+
+.active-order-item {
+  display: grid;
+  gap: 5px;
+  padding: 10px;
+  border: 1px solid #e8ebf0;
+  border-radius: 9px;
+}
+
+.active-order-item strong {
+  font-size: 13px;
+}
+
+.active-order-item span {
+  color: #65758b;
+  font-size: 12px;
+}
+
+.active-order-comment {
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: 13px;
+}
+
+.active-order-readonly {
+  margin: 0;
+  font-size: 12px;
+  color: #65758b;
+}

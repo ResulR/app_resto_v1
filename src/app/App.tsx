@@ -25,6 +25,7 @@ import {
 } from '../features/orders/cart'
 import { FreeItemForm } from '../features/orders/FreeItemForm'
 import { DraftManager } from '../features/orders/DraftManager'
+import { ActiveOrders } from '../features/orders/ActiveOrders'
 import {
   saveDraft,
   deleteDraft,
@@ -731,6 +732,8 @@ export default function App() {
               activeDraftId={activeDraftId}
               onResume={resumeDraft}
             />
+
+            <ActiveOrders />
           </div>
 
           <OrderSummary

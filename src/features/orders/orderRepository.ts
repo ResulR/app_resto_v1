@@ -88,6 +88,22 @@ export async function getConfirmedOrder(
   return order ? structuredClone(order) : undefined
 }
 
+export async function listActiveOrders(): Promise<ConfirmedOrder[]> {
+  const rows = await orders()
+    .orderBy('createdAt')
+    .reverse()
+    .toArray()
+
+  return rows
+    .filter(order => order.status === 'validated')
+    .sort(
+      (a, b) =>
+        b.createdAt.localeCompare(a.createdAt) ||
+        b.id.localeCompare(a.id),
+    )
+    .map(order => structuredClone(order))
+}
+
 export async function getLatestConfirmedOrder():
   Promise<ConfirmedOrder | undefined> {
   const order = await orders()
