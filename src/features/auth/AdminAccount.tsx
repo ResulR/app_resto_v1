@@ -5,7 +5,12 @@ import {
   loginAdmin,
   logoutAdmin,
 } from './authClient'
-import { resolveAccess } from './accessController'
+import { resolveGuardedAccess } from './accessController'
+import {
+  beginLogout,
+  completePendingLogout,
+  hasPendingLogout,
+} from './logoutFlow'
 import {
   authorizeOfflineDevice,
   hasOfflineAuthorization,
@@ -19,12 +24,28 @@ const accessDependencies = {
   clearOfflineAuthorization,
 }
 
+function logoutDependencies() {
+  return {
+    storage: window.localStorage,
+    clearOfflineAuthorization,
+    revokeServerSession: logoutAdmin,
+  }
+}
+
+const logoutGuard = {
+  hasPendingLogout: () =>
+    hasPendingLogout(window.localStorage),
+  completePendingLogout: () =>
+    completePendingLogout(logoutDependencies()),
+}
+
 type SessionState =
   | 'loading'
   | 'authenticated'
   | 'offline'
   | 'anonymous'
   | 'unavailable'
+  | 'pending-logout'
 
 export function AdminAccount() {
   const [state, setState] = useState<SessionState>('loading')
@@ -36,7 +57,10 @@ export function AdminAccount() {
   useEffect(() => {
     let cancelled = false
 
-    resolveAccess(accessDependencies)
+    resolveGuardedAccess(
+      accessDependencies,
+      logoutGuard,
+    )
       .then(decision => {
         if (cancelled) return
 
@@ -51,11 +75,21 @@ export function AdminAccount() {
         } else if (decision.status === 'offline') {
           setState('offline')
         } else {
-          setState(
-            decision.reason === 'session-invalid'
-              ? 'anonymous'
-              : 'unavailable',
-          )
+          // Même si la révocation vient de réussir,
+          // le contrôleur impose une nouvelle connexion.
+          try {
+            if (hasPendingLogout(window.localStorage)) {
+              setState('pending-logout')
+            } else {
+              setState(
+                decision.reason === 'session-invalid'
+                  ? 'anonymous'
+                  : 'unavailable',
+              )
+            }
+          } catch {
+            setState('unavailable')
+          }
         }
       })
       .catch(() => {
@@ -71,6 +105,19 @@ export function AdminAccount() {
     event.preventDefault()
 
     if (busy || !password) return
+
+    try {
+      if (hasPendingLogout(window.localStorage)) {
+        setState('pending-logout')
+        setError(
+          'Une déconnexion doit encore être confirmée.',
+        )
+        return
+      }
+    } catch {
+      setError('Stockage local inaccessible.')
+      return
+    }
 
     setBusy(true)
     setError('')
@@ -126,17 +173,32 @@ export function AdminAccount() {
     setMessage('')
 
     try {
-      // Révoquer d'abord la session sur le serveur.
-      await logoutAdmin()
+      const result = await beginLogout(
+        logoutDependencies(),
+      )
 
-      // Ne confirmer la déconnexion locale qu'après
-      // suppression effective de l'autorisation.
-      await clearOfflineAuthorization()
-
-      setState('anonymous')
       setPassword('')
-      setMessage('Déconnexion effectuée.')
+
+      if (result.status === 'pending') {
+        setState('pending-logout')
+        setMessage(
+          'Accès local révoqué. Déconnexion serveur en attente.',
+        )
+      } else {
+        setState('anonymous')
+        setMessage('Déconnexion effectuée.')
+      }
     } catch (cause) {
+      // Si le marqueur a été enregistré avant l'erreur,
+      // ne plus présenter la session comme active.
+      try {
+        if (hasPendingLogout(window.localStorage)) {
+          setState('pending-logout')
+        }
+      } catch {
+        // Ne pas annoncer une déconnexion réussie.
+      }
+
       setError(
         cause instanceof Error
           ? cause.message
@@ -170,9 +232,34 @@ export function AdminAccount() {
             Le serveur est inaccessible. Les commandes restent
             stockées localement.
           </p>
-          <p>
-            La déconnexion serveur nécessite une connexion Internet.
+          <button
+            type="button"
+            className="admin-account-button"
+            disabled={busy}
+            onClick={() => void disconnect()}
+          >
+            {busy ? 'Déconnexion...' : 'Se déconnecter'}
+          </button>
+        </div>
+      )}
+
+      {state === 'pending-logout' && (
+        <div className="admin-account-card">
+          <p className="admin-account-warning" role="alert">
+            Déconnexion serveur en attente.
           </p>
+          <p>
+            L'autorisation locale a été révoquée.
+            Une connexion Internet est nécessaire pour
+            terminer la déconnexion.
+          </p>
+          <button
+            type="button"
+            className="admin-account-button"
+            onClick={() => window.location.reload()}
+          >
+            Réessayer la révocation
+          </button>
         </div>
       )}
 
