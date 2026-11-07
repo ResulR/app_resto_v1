@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import { db } from '../shared/database/db'
@@ -25,6 +25,12 @@ import {
 } from '../features/orders/cart'
 import { FreeItemForm } from '../features/orders/FreeItemForm'
 import {
+  confirmOrder,
+  getLatestConfirmedOrder,
+  type ConfirmedOrder,
+  type ConsumptionMode,
+} from '../features/orders/orderRepository'
+import {
   calculateCartAmounts,
   calculateLineAmount,
 } from '../features/orders/pricing'
@@ -33,7 +39,6 @@ import './RestaurantLayout.css'
 
 type Screen = 'orders' | 'settings'
 type SettingsTab = 'categories' | 'products' | 'options'
-type ConsumptionMode = 'sur_place' | 'emporter' | null
 
 
 function formatPrice(cents: number) {
@@ -170,8 +175,12 @@ function OrderSummary({
   onEdit,
   consumptionMode,
   onConsumptionModeChange,
+  onFinish,
+  saving,
 }: {
   items: CartItem[]
+  onFinish: () => void
+  saving: boolean
   consumptionMode: ConsumptionMode
   onConsumptionModeChange: (mode: ConsumptionMode) => void
   comment: string
@@ -370,7 +379,8 @@ function OrderSummary({
         <button
           className="finish-button"
           type="button"
-          disabled
+          disabled={saving || items.length === 0}
+          onClick={onFinish}
         >
           Terminer la commande
           <span>→</span>
@@ -391,6 +401,16 @@ export default function App() {
     useState<SettingsTab>('categories')
 
   const [items, setItems] = useState<CartItem[]>([])
+  const [saving, setSaving] = useState(false)
+  const [confirmedOrder, setConfirmedOrder] =
+    useState<ConfirmedOrder | null>(null)
+  const validationLock = useRef(false)
+  const pendingOrderId = useRef<string | null>(null)
+
+  const latestConfirmedOrder = useLiveQuery(
+    () => getLatestConfirmedOrder(),
+    [],
+  )
   const [comment, setComment] = useState('')
   const [consumptionMode, setConsumptionMode] =
     useState<ConsumptionMode>(null)
@@ -437,6 +457,42 @@ export default function App() {
     // Validation synchrone avant de fermer le formulaire.
     setItems(current => addFreeItem(current, input))
     setFreeItemOpen(false)
+  }
+
+  async function finishOrder() {
+    // Verrou synchrone : protège contre les doubles clics.
+    if (validationLock.current || items.length === 0) return
+
+    validationLock.current = true
+    setSaving(true)
+    setOrderError('')
+
+    const id = pendingOrderId.current ?? crypto.randomUUID()
+    pendingOrderId.current = id
+
+    try {
+      const saved = await confirmOrder({
+        id,
+        items,
+        comment,
+        consumptionMode,
+      })
+
+      setConfirmedOrder(saved)
+      setItems([])
+      setComment('')
+      setConsumptionMode(null)
+      pendingOrderId.current = null
+    } catch (cause) {
+      setOrderError(
+        cause instanceof Error
+          ? cause.message
+          : 'Impossible de valider la commande.',
+      )
+    } finally {
+      validationLock.current = false
+      setSaving(false)
+    }
   }
 
   function changeQuantity(id: string, delta: 1 | -1) {
@@ -575,6 +631,8 @@ export default function App() {
             onConsumptionModeChange={setConsumptionMode}
             onQuantityChange={changeQuantity}
             onEdit={editItem}
+            onFinish={() => void finishOrder()}
+            saving={saving}
           />
         </div>
       )}
@@ -583,6 +641,88 @@ export default function App() {
         <p className="order-action-error" role="alert">
           {orderError}
         </p>
+      )}
+
+      {confirmedOrder && (
+        <div className="customizer-overlay">
+          <section
+            className="customizer-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="confirmed-title"
+          >
+            <span className="eyebrow">COMMANDE VALIDÉE</span>
+            <h2 id="confirmed-title">
+              Commande enregistrée
+            </h2>
+
+            <p>
+              Enregistrée le{' '}
+              {new Date(confirmedOrder.createdAt)
+                .toLocaleString('fr-BE')}.
+            </p>
+
+            <div className="confirmed-order-items">
+              {confirmedOrder.items.map(item => (
+                <div key={item.id} className="confirmed-order-line">
+                  <strong>{item.quantity} × {item.name}</strong>
+
+                  {item.options.map(option => (
+                    <span key={option.id}>
+                      {option.groupName} : {option.name}
+                    </span>
+                  ))}
+
+                  {item.note && <span>Note : {item.note}</span>}
+                </div>
+              ))}
+            </div>
+
+            {confirmedOrder.comment && (
+              <p>Commentaire : {confirmedOrder.comment}</p>
+            )}
+
+            <p>
+              Mode : {
+                confirmedOrder.consumptionMode === 'sur_place'
+                  ? 'Sur place'
+                  : confirmedOrder.consumptionMode === 'emporter'
+                    ? 'À emporter'
+                    : 'Non précisé'
+              }
+            </p>
+
+            <p>
+              {confirmedOrder.totalComplete
+                ? 'Total'
+                : 'Montant connu'} :{' '}
+              {formatPrice(confirmedOrder.knownTotalCents)}
+            </p>
+
+            <p className="variant-description">
+              Commande définitive : aucune modification
+              ni annulation possible.
+            </p>
+
+            <button
+              className="customizer-confirm"
+              type="button"
+              onClick={() => setConfirmedOrder(null)}
+            >
+              Nouvelle commande
+            </button>
+          </section>
+        </div>
+      )}
+
+      {!confirmedOrder && latestConfirmedOrder && (
+        <button
+          type="button"
+          className="last-order-button"
+          onClick={() => setConfirmedOrder(latestConfirmedOrder)}
+        >
+          Voir la dernière commande validée
+        </button>
       )}
 
       {freeItemOpen && (

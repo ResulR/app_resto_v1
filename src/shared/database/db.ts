@@ -31,6 +31,11 @@ export class RestaurantDatabase extends Dexie {
       options: 'id, groupId, position, active',
       drafts: 'id, updatedAt',
     })
+
+    // Migration non destructive : commandes définitives.
+    this.version(2).stores({
+      orders: 'id, createdAt',
+    })
   }
 }
 
