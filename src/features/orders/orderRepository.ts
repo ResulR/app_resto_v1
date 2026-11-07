@@ -121,6 +121,20 @@ export async function completeOrder(
   })
 }
 
+export async function listCompletedOrders(): Promise<ConfirmedOrder[]> {
+  const rows = await orders().toArray()
+
+  return rows
+    .filter(order => order.status === 'completed')
+    .sort(
+      (a, b) =>
+        (b.completedAt ?? b.createdAt).localeCompare(
+          a.completedAt ?? a.createdAt,
+        ) || b.id.localeCompare(a.id),
+    )
+    .map(order => structuredClone(order))
+}
+
 export async function listActiveOrders(): Promise<ConfirmedOrder[]> {
   const rows = await orders()
     .orderBy('createdAt')

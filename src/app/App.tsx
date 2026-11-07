@@ -26,6 +26,7 @@ import {
 import { FreeItemForm } from '../features/orders/FreeItemForm'
 import { DraftManager } from '../features/orders/DraftManager'
 import { ActiveOrders } from '../features/orders/ActiveOrders'
+import { CompletedOrders } from '../features/orders/CompletedOrders'
 import {
   saveDraft,
   deleteDraft,
@@ -734,6 +735,7 @@ export default function App() {
             />
 
             <ActiveOrders />
+            <CompletedOrders />
           </div>
 
           <OrderSummary
