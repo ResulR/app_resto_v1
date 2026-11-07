@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { CategoryManager } from '../features/catalogue/CategoryManager'
 import { ProductManager } from '../features/catalogue/ProductManager'
+import { OptionManager } from '../features/catalogue/OptionManager'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../shared/database/db'
 
@@ -21,7 +22,7 @@ function formatPrice(cents: number) {
 
 export default function App() {
   const [screen, setScreen] = useState<'orders' | 'settings'>('orders')
-  const [settingsTab, setSettingsTab] = useState<'categories' | 'products'>('categories')
+  const [settingsTab, setSettingsTab] = useState<'categories' | 'products' | 'options'>('categories')
   const [categories, setCategories] = useState<Category[]>([])
   const [products, setProducts] = useState<Product[]>([])
   const [activeCategory, setActiveCategory] = useState('all')
@@ -116,11 +117,22 @@ export default function App() {
             >
               Produits
             </button>
+            <button
+              type="button"
+              className={settingsTab === 'options' ? 'active' : ''}
+              onClick={() => setSettingsTab('options')}
+            >
+              Options
+            </button>
           </nav>
 
-          {settingsTab === 'categories'
-            ? <CategoryManager />
-            : <ProductManager />}
+          {settingsTab === 'categories' ? (
+            <CategoryManager />
+          ) : settingsTab === 'products' ? (
+            <ProductManager />
+          ) : (
+            <OptionManager />
+          )}
         </div>
       ) : (
       <div className="workspace">

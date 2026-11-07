@@ -712,3 +712,39 @@ button:focus-visible {
     align-items: flex-start;
   }
 }
+
+.option-manager {
+  width: 100%;
+  padding: 20px 0;
+}
+
+.option-manager > h2 {
+  margin: 28px 0 16px;
+  font-size: 19px;
+}
+
+.option-product-list {
+  display: grid;
+  gap: 8px;
+}
+
+.option-product-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 48px;
+  padding: 10px 13px;
+  border: 1px solid #e8ebf0;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.option-product-row input {
+  width: 20px;
+  height: 20px;
+  accent-color: #25374c;
+}
+
+.settings-tabs {
+  flex-wrap: wrap;
+}
