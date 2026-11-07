@@ -1730,3 +1730,67 @@ button:focus-visible {
   font-size: 11px;
   line-height: 1.5;
 }
+
+/* Point 6.2 — paramètres d'impression */
+
+.printer-settings {
+  display: grid;
+  gap: 18px;
+  max-width: 650px;
+}
+
+.printer-settings fieldset {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid #dce3ec;
+  border-radius: 12px;
+}
+
+.printer-settings legend {
+  padding: 0 5px;
+  font-weight: 700;
+}
+
+.printer-settings label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  cursor: pointer;
+}
+
+.printer-settings input[type="radio"] {
+  width: 22px;
+  height: 22px;
+  accent-color: #25374c;
+}
+
+.printer-status {
+  margin: 0;
+  font-weight: 700;
+}
+
+.printer-explanation {
+  margin: 0;
+  color: #65758b;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.printer-test-button {
+  min-height: 52px;
+  padding: 12px 18px;
+  border: 0;
+  border-radius: 11px;
+  background: #25374c;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.printer-test-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

@@ -10,6 +10,7 @@ import type {
 import { CategoryManager } from '../features/catalogue/CategoryManager'
 import { ProductManager } from '../features/catalogue/ProductManager'
 import { OptionManager } from '../features/catalogue/OptionManager'
+import { PrinterSettings } from '../features/printing/PrinterSettings'
 import {
   ProductCustomizer,
   type SelectedOption,
@@ -46,7 +47,7 @@ import {
 import './RestaurantLayout.css'
 
 type Screen = 'orders' | 'settings'
-type SettingsTab = 'categories' | 'products' | 'options'
+type SettingsTab = 'categories' | 'products' | 'options' | 'printing'
 
 
 function formatPrice(cents: number) {
@@ -682,14 +683,26 @@ export default function App() {
             >
               Options
             </button>
+
+            <button
+              type="button"
+              className={
+                settingsTab === 'printing' ? 'active' : ''
+              }
+              onClick={() => setSettingsTab('printing')}
+            >
+              Impression
+            </button>
           </nav>
 
           {settingsTab === 'categories' ? (
             <CategoryManager />
           ) : settingsTab === 'products' ? (
             <ProductManager />
-          ) : (
+          ) : settingsTab === 'options' ? (
             <OptionManager />
+          ) : (
+            <PrinterSettings />
           )}
         </div>
       ) : (

@@ -18,6 +18,7 @@ export class RestaurantDatabase extends Dexie {
   productOptionGroups!: Table<ProductOptionGroup, string>
   options!: Table<ProductOption, string>
   drafts!: Table<DraftOrder, string>
+  settings!: Table<{ key: string; value: string }, string>
 
   constructor() {
     super('restaurant-pwa')
@@ -35,6 +36,10 @@ export class RestaurantDatabase extends Dexie {
     // Migration non destructive : commandes définitives.
     this.version(2).stores({
       orders: 'id, createdAt',
+    })
+
+    this.version(3).stores({
+      settings: 'key',
     })
   }
 }
