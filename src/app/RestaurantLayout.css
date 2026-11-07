@@ -1117,3 +1117,23 @@ button:focus-visible {
 .free-item-form .customizer-footer {
   margin-top: 12px;
 }
+
+.item-price {
+  text-align: right;
+  overflow-wrap: normal;
+}
+
+.partial-price-label {
+  display: block;
+  margin-top: 4px;
+  color: #996515;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.order-price-warning {
+  padding: 10px 12px;
+  background: #fff8e8;
+  border: 1px solid #f5e5b9;
+  border-radius: 9px;
+}

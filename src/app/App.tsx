@@ -24,6 +24,10 @@ import {
   type FreeItemInput,
 } from '../features/orders/cart'
 import { FreeItemForm } from '../features/orders/FreeItemForm'
+import {
+  calculateCartAmounts,
+  calculateLineAmount,
+} from '../features/orders/pricing'
 
 import './RestaurantLayout.css'
 
@@ -170,24 +174,7 @@ function OrderSummary({
   onQuantityChange: (id: string, delta: 1 | -1) => void
   onEdit: (item: CartItem) => void
 }) {
-  const knownTotal = items.reduce(
-    (sum, item) =>
-      sum +
-      item.quantity * (
-        (item.priceCents ?? 0) +
-        item.options.reduce(
-          (total, option) => total + (option.priceCents ?? 0),
-          0,
-        )
-      ),
-    0,
-  )
-
-  const hasUnknownPrices = items.some(
-    item =>
-      item.priceCents === undefined ||
-      item.options.some(option => option.priceCents === undefined),
-  )
+  const amounts = calculateCartAmounts(items)
 
   return (
     <aside
@@ -266,19 +253,24 @@ function OrderSummary({
               </div>
 
               <strong className="item-price">
-                {item.priceCents === undefined ||
-                  item.options.some(option => option.priceCents === undefined)
-                  ? '—'
-                  : formatPrice(
-                      item.quantity * (
-                        item.priceCents +
-                        item.options.reduce(
-                          (total, option) =>
-                            total + (option.priceCents ?? 0),
-                          0,
-                        )
-                      ),
-                    )}
+                {(() => {
+                  const amount = calculateLineAmount(item)
+
+                  if (!amount.hasKnownPrice) {
+                    return 'Prix non renseigné'
+                  }
+
+                  return (
+                    <>
+                      {formatPrice(amount.knownCents)}
+                      {!amount.complete && (
+                        <span className="partial-price-label">
+                          Partiel
+                        </span>
+                      )}
+                    </>
+                  )
+                })()}
               </strong>
             </div>
           ))
@@ -305,18 +297,22 @@ function OrderSummary({
           <>
             <div className="total-row">
               <span>
-                {hasUnknownPrices
-                  ? 'Sous-total des prix connus'
-                  : 'Total'}
+                {amounts.complete
+                  ? 'Total'
+                  : 'Montant connu'}
               </span>
 
-              <strong>{formatPrice(knownTotal)}</strong>
+              <strong>
+                {amounts.hasKnownPrice
+                  ? formatPrice(amounts.knownCents)
+                  : 'Non renseigné'}
+              </strong>
             </div>
 
-            {hasUnknownPrices && (
+            {!amounts.complete && (
               <p className="order-price-warning">
-                Total incomplet : certains articles
-                n'ont pas de prix renseigné.
+                Total incomplet : au moins un produit
+                ou une option n'a pas de prix renseigné.
               </p>
             )}
           </>
