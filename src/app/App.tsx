@@ -15,19 +15,18 @@ import {
   type SelectedOption,
 } from '../features/orders/ProductCustomizer'
 
+import {
+  addToCart,
+  changeCartQuantity,
+  editCartUnit,
+  type CartItem,
+} from '../features/orders/cart'
+
 import './RestaurantLayout.css'
 
 type Screen = 'orders' | 'settings'
 type SettingsTab = 'categories' | 'products' | 'options'
 
-type CartItem = {
-  id: string
-  productId: string
-  name: string
-  priceCents?: number
-  options: SelectedOption[]
-  note: string
-}
 
 function formatPrice(cents: number) {
   return new Intl.NumberFormat('fr-BE', {
@@ -147,18 +146,24 @@ function OrderSummary({
   items,
   comment,
   onCommentChange,
+  onQuantityChange,
+  onEdit,
 }: {
   items: CartItem[]
   comment: string
   onCommentChange: (value: string) => void
+  onQuantityChange: (id: string, delta: 1 | -1) => void
+  onEdit: (item: CartItem) => void
 }) {
   const knownTotal = items.reduce(
     (sum, item) =>
       sum +
-      (item.priceCents ?? 0) +
-      item.options.reduce(
-        (total, option) => total + (option.priceCents ?? 0),
-        0,
+      item.quantity * (
+        (item.priceCents ?? 0) +
+        item.options.reduce(
+          (total, option) => total + (option.priceCents ?? 0),
+          0,
+        )
       ),
     0,
   )
@@ -181,7 +186,7 @@ function OrderSummary({
         </div>
 
         <span className="order-count">
-          {items.length} article{items.length > 1 ? 's' : ''}
+          {items.reduce((sum, item) => sum + item.quantity, 0)} articles
         </span>
       </div>
 
@@ -197,7 +202,7 @@ function OrderSummary({
         ) : (
           items.map(item => (
             <div className="order-item" key={item.id}>
-              <div className="item-quantity">1×</div>
+              <div className="item-quantity">{item.quantity}×</div>
 
               <div className="item-details">
                 <strong>{item.name}</strong>
@@ -213,6 +218,34 @@ function OrderSummary({
                     Note : {item.note}
                   </span>
                 )}
+
+                <div className="cart-item-actions">
+                  <button
+                    type="button"
+                    aria-label={`Retirer une unité de ${item.name}`}
+                    onClick={() => onQuantityChange(item.id, -1)}
+                  >
+                    −
+                  </button>
+
+                  <span>{item.quantity}</span>
+
+                  <button
+                    type="button"
+                    aria-label={`Ajouter une unité de ${item.name}`}
+                    onClick={() => onQuantityChange(item.id, 1)}
+                  >
+                    +
+                  </button>
+
+                  <button
+                    type="button"
+                    className="cart-edit-button"
+                    onClick={() => onEdit(item)}
+                  >
+                    Modifier
+                  </button>
+                </div>
               </div>
 
               <strong className="item-price">
@@ -220,11 +253,13 @@ function OrderSummary({
                   item.options.some(option => option.priceCents === undefined)
                   ? '—'
                   : formatPrice(
-                      item.priceCents +
-                      item.options.reduce(
-                        (total, option) =>
-                          total + (option.priceCents ?? 0),
-                        0,
+                      item.quantity * (
+                        item.priceCents +
+                        item.options.reduce(
+                          (total, option) =>
+                            total + (option.priceCents ?? 0),
+                          0,
+                        )
                       ),
                     )}
               </strong>
@@ -296,6 +331,7 @@ export default function App() {
   const [items, setItems] = useState<CartItem[]>([])
   const [comment, setComment] = useState('')
   const [customizing, setCustomizing] = useState<Product | null>(null)
+  const [editingItemId, setEditingItemId] = useState<string | null>(null)
   const [orderError, setOrderError] = useState('')
 
   const categories = useLiveQuery(
@@ -328,17 +364,23 @@ export default function App() {
     options: SelectedOption[] = [],
     note = '',
   ) {
-    setItems(current => [
-      ...current,
-      {
-        id: crypto.randomUUID(),
-        productId: product.id,
-        name: product.name,
-        priceCents: product.priceCents,
-        options,
-        note,
-      },
-    ])
+    setItems(current => addToCart(current, product, options, note))
+  }
+
+  function changeQuantity(id: string, delta: 1 | -1) {
+    setItems(current => changeCartQuantity(current, id, delta))
+  }
+
+  function editItem(item: CartItem) {
+    setEditingItemId(item.id)
+    setCustomizing({
+      id: item.productId,
+      categoryId: '',
+      name: item.name,
+      priceCents: item.priceCents,
+      position: 0,
+      active: true,
+    })
   }
 
   async function addProduct(product: Product) {
@@ -351,6 +393,7 @@ export default function App() {
         throw new Error('Ce produit est indisponible.')
       }
 
+      setEditingItemId(null)
       setCustomizing(currentProduct)
     } catch (cause) {
       setOrderError(
@@ -455,6 +498,8 @@ export default function App() {
             items={items}
             comment={comment}
             onCommentChange={setComment}
+            onQuantityChange={changeQuantity}
+            onEdit={editItem}
           />
         </div>
       )}
@@ -467,11 +512,35 @@ export default function App() {
 
       {customizing && (
         <ProductCustomizer
+          key={editingItemId ?? customizing.id}
           product={customizing}
-          onCancel={() => setCustomizing(null)}
-          onConfirm={(product, options, note) => {
-            appendProduct(product, options, note)
+          initialOptions={
+            items.find(item => item.id === editingItemId)?.options
+          }
+          initialNote={
+            items.find(item => item.id === editingItemId)?.note
+          }
+          onCancel={() => {
             setCustomizing(null)
+            setEditingItemId(null)
+          }}
+          onConfirm={(product, options, note) => {
+            if (editingItemId) {
+              setItems(current =>
+                editCartUnit(
+                  current,
+                  editingItemId,
+                  product,
+                  options,
+                  note,
+                ),
+              )
+            } else {
+              appendProduct(product, options, note)
+            }
+
+            setCustomizing(null)
+            setEditingItemId(null)
           }}
         />
       )}

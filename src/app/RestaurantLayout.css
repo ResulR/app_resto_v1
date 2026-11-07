@@ -1018,3 +1018,36 @@ button:focus-visible {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+
+.cart-item-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 14px;
+}
+
+.cart-item-actions button {
+  min-width: 38px;
+  min-height: 38px;
+  border: 1px solid #dce3ec;
+  background: #f7f9fc;
+  border-radius: 9px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cart-item-actions > span {
+  min-width: 18px;
+  color: #25374c;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.cart-item-actions .cart-edit-button {
+  padding: 8px 12px;
+  color: #2452a1;
+  background: #edf3ff;
+  border-color: #dce7fb;
+}

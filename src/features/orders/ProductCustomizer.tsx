@@ -16,6 +16,8 @@ export type SelectedOption = {
 
 type Props = {
   product: Product
+  initialOptions?: SelectedOption[]
+  initialNote?: string
   onCancel: () => void
   onConfirm: (
     product: Product,
@@ -33,11 +35,15 @@ function formatPrice(cents: number) {
 
 export function ProductCustomizer({
   product,
+  initialOptions = [],
+  initialNote = '',
   onCancel,
   onConfirm,
 }: Props) {
-  const [selected, setSelected] = useState<string[]>([])
-  const [note, setNote] = useState('')
+  const [selected, setSelected] = useState<string[]>(
+    () => initialOptions.map(option => option.id),
+  )
+  const [note, setNote] = useState(initialNote)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
