@@ -6,7 +6,7 @@ import {
   logoutAdmin,
 } from './authClient'
 import { resolveGuardedAccess } from './accessController'
-import { AUTH_CHANGED_EVENT } from './AccessGate'
+import { AUTH_LOCK_EVENT } from './AccessGate'
 import {
   beginLogout,
   completePendingLogout,
@@ -174,14 +174,19 @@ export function AdminAccount() {
     setMessage('')
 
     try {
-      const result = await beginLogout(
+      // beginLogout enregistre son marqueur synchrone
+      // avant sa première opération asynchrone.
+      const operation = beginLogout(
         logoutDependencies(),
       )
 
+      // Verrouiller React sans attendre le réseau
+      // ni la suppression IndexedDB.
+      setState('pending-logout')
       setPassword('')
+      window.dispatchEvent(new Event(AUTH_LOCK_EVENT))
 
-      // Prévenir le contrôleur global immédiatement.
-      window.dispatchEvent(new Event(AUTH_CHANGED_EVENT))
+      const result = await operation
 
       if (result.status === 'pending') {
         setState('pending-logout')
@@ -198,7 +203,7 @@ export function AdminAccount() {
       try {
         if (hasPendingLogout(window.localStorage)) {
           setState('pending-logout')
-          window.dispatchEvent(new Event(AUTH_CHANGED_EVENT))
+          window.dispatchEvent(new Event(AUTH_LOCK_EVENT))
         }
       } catch {
         // Ne pas annoncer une déconnexion réussie.

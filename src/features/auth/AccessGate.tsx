@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
 
 import {
@@ -20,6 +20,7 @@ import {
 } from './logoutFlow'
 
 export const AUTH_CHANGED_EVENT = 'restaurant-auth-changed'
+export const AUTH_LOCK_EVENT = 'restaurant-auth-lock'
 
 type GateState =
   | 'checking'
@@ -46,8 +47,11 @@ export function AccessGate({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+  const verificationId = useRef(0)
 
   const verifyAccess = useCallback(async () => {
+    const currentId = ++verificationId.current
+
     setState('checking')
     setError('')
 
@@ -67,6 +71,8 @@ export function AccessGate({
             completePendingLogout(dependencies()),
         },
       )
+
+      if (currentId !== verificationId.current) return
 
       if (decision.status === 'online') {
         setState('online')
@@ -93,6 +99,8 @@ export function AccessGate({
           : 'locked',
       )
     } catch {
+      if (currentId !== verificationId.current) return
+
       // Aucune erreur de stockage ne doit ouvrir la caisse.
       setState('locked')
       setError(
@@ -106,6 +114,16 @@ export function AccessGate({
 
     const onAuthChanged = () => {
       void verifyAccess()
+    }
+
+    // Verrouillage immédiat : aucune requête réseau ici.
+    // Invalide toutes les vérifications déjà lancées.
+    const onAuthLock = () => {
+      verificationId.current += 1
+      setPassword('')
+      setError('')
+      setNotice('')
+      setState('pending')
     }
 
     const onStorageChanged = (event: StorageEvent) => {
@@ -123,6 +141,11 @@ export function AccessGate({
     )
 
     window.addEventListener(
+      AUTH_LOCK_EVENT,
+      onAuthLock,
+    )
+
+    window.addEventListener(
       'storage',
       onStorageChanged,
     )
@@ -131,6 +154,11 @@ export function AccessGate({
       window.removeEventListener(
         AUTH_CHANGED_EVENT,
         onAuthChanged,
+      )
+
+      window.removeEventListener(
+        AUTH_LOCK_EVENT,
+        onAuthLock,
       )
 
       window.removeEventListener(
