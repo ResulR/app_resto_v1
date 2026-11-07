@@ -89,7 +89,7 @@ test('session refusée : accès verrouillé', async () => {
 test('serveur indisponible et appareil autorisé', async () => {
   const { services } = dependencies({
     async checkServerSession() {
-      throw new Error('offline')
+      throw new TypeError('Failed to fetch')
     },
     async hasOfflineAuthorization() {
       return true
@@ -105,7 +105,7 @@ test('serveur indisponible et appareil autorisé', async () => {
 test('serveur indisponible et appareil inconnu', async () => {
   const { services } = dependencies({
     async checkServerSession() {
-      throw new Error('offline')
+      throw new TypeError('Failed to fetch')
     },
   })
 
@@ -147,5 +147,76 @@ test('erreur de suppression locale : ne pas autoriser l’accès', async () => {
   await assert.rejects(
     resolveAccess(services),
     /suppression impossible/,
+  )
+})
+
+test('erreur HTTP 503 : aucun accès hors ligne', async () => {
+  const events = []
+
+  const { services } = dependencies({
+    async checkServerSession() {
+      events.push('http-503')
+      throw new Error(
+        'Impossible de vérifier la session.',
+      )
+    },
+    async hasOfflineAuthorization() {
+      events.push('check-local')
+      return true
+    },
+  })
+
+  assert.deepEqual(
+    await resolveAccess(services),
+    {
+      status: 'locked',
+      reason: 'offline-unavailable',
+    },
+  )
+
+  assert.deepEqual(events, ['http-503'])
+})
+
+test('réponse serveur invalide : aucun accès hors ligne', async () => {
+  const events = []
+
+  const { services } = dependencies({
+    async checkServerSession() {
+      events.push('invalid-json')
+      throw new SyntaxError('Invalid JSON')
+    },
+    async hasOfflineAuthorization() {
+      events.push('check-local')
+      return true
+    },
+  })
+
+  assert.deepEqual(
+    await resolveAccess(services),
+    {
+      status: 'locked',
+      reason: 'offline-unavailable',
+    },
+  )
+
+  assert.deepEqual(events, ['invalid-json'])
+})
+
+test('stockage hors ligne inaccessible : accès refusé', async () => {
+  const { services } = dependencies({
+    async checkServerSession() {
+      throw new TypeError('Failed to fetch')
+    },
+    async hasOfflineAuthorization() {
+      throw new Error('IndexedDB inaccessible')
+    },
+  })
+
+  assert.deepEqual(
+    await resolveAccess(services),
+    {
+      status: 'locked',
+      reason: 'offline-unavailable',
+    },
   )
 })

@@ -33,16 +33,36 @@ export async function resolveAccess(
   try {
     serverAuthenticated =
       await dependencies.checkServerSession()
-  } catch {
-    const locallyAuthorized =
-      await dependencies.hasOfflineAuthorization()
+  } catch (error) {
+    // Une réponse HTTP d'erreur, une réponse JSON invalide
+    // ou une erreur applicative ne doivent jamais activer
+    // une autorisation locale de secours.
+    //
+    // fetch() rejette normalement avec TypeError lorsque
+    // la requête ne peut pas aboutir au niveau réseau.
+    if (!(error instanceof TypeError)) {
+      return {
+        status: 'locked',
+        reason: 'offline-unavailable',
+      }
+    }
 
-    return locallyAuthorized
-      ? { status: 'offline' }
-      : {
-          status: 'locked',
-          reason: 'offline-unavailable',
-        }
+    try {
+      const locallyAuthorized =
+        await dependencies.hasOfflineAuthorization()
+
+      return locallyAuthorized
+        ? { status: 'offline' }
+        : {
+            status: 'locked',
+            reason: 'offline-unavailable',
+          }
+    } catch {
+      return {
+        status: 'locked',
+        reason: 'offline-unavailable',
+      }
+    }
   }
 
   if (!serverAuthenticated) {
