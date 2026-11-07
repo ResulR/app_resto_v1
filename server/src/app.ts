@@ -6,6 +6,30 @@ export function createApp(pool?: Pool) {
   const app = express()
 
   app.disable('x-powered-by')
+
+  // Lorsqu'une origine publique est configurée, les écritures
+  // doivent provenir de cette origine exacte.
+  // Ne jamais utiliser Host ou X-Forwarded-Host comme autorité.
+  app.use((request, response, next) => {
+    const expected = process.env.RESTAURANT_ALLOWED_ORIGIN
+
+    if (
+      expected &&
+      !['GET', 'HEAD', 'OPTIONS'].includes(request.method)
+    ) {
+      const origin = request.headers.origin
+
+      if (origin !== expected) {
+        response.status(403).json({
+          error: 'Origine non autorisée.',
+        })
+        return
+      }
+    }
+
+    next()
+  })
+
   app.use(express.json({ limit: '1mb' }))
 
   app.get('/health', (_request, response) => {
