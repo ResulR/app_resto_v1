@@ -1,17 +1,27 @@
-import { useEffect, useState } from 'react'
-import { CategoryManager } from '../features/catalogue/CategoryManager'
-import { ProductManager } from '../features/catalogue/ProductManager'
-import { OptionManager } from '../features/catalogue/OptionManager'
+import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { db } from '../shared/database/db'
 
-import { getCatalogue } from '../features/catalogue/catalogueRepository'
+import { db } from '../shared/database/db'
 import type {
   Category,
   Product,
 } from '../shared/database/models'
 
+import { CategoryManager } from '../features/catalogue/CategoryManager'
+import { ProductManager } from '../features/catalogue/ProductManager'
+import { OptionManager } from '../features/catalogue/OptionManager'
+
 import './RestaurantLayout.css'
+
+type Screen = 'orders' | 'settings'
+type SettingsTab = 'categories' | 'products' | 'options'
+
+type CartItem = {
+  id: string
+  productId: string
+  name: string
+  priceCents?: number
+}
 
 function formatPrice(cents: number) {
   return new Intl.NumberFormat('fr-BE', {
@@ -20,73 +30,261 @@ function formatPrice(cents: number) {
   }).format(cents / 100)
 }
 
-export default function App() {
-  const [screen, setScreen] = useState<'orders' | 'settings'>('orders')
-  const [settingsTab, setSettingsTab] = useState<'categories' | 'products' | 'options'>('categories')
-  const [categories, setCategories] = useState<Category[]>([])
-  const [products, setProducts] = useState<Product[]>([])
+function OrderCatalogue({
+  categories,
+  products,
+  onAdd,
+}: {
+  categories: Category[]
+  products: Product[]
+  onAdd: (product: Product) => void
+}) {
   const [activeCategory, setActiveCategory] = useState('all')
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
 
-  useEffect(() => {
-    let cancelled = false
+  const visibleProducts = products.filter(
+    product =>
+      activeCategory === 'all' ||
+      product.categoryId === activeCategory,
+  )
 
-    getCatalogue()
-      .then((data) => {
-        if (cancelled) return
+  return (
+    <section className="catalogue-panel">
+      <div className="section-heading">
+        <span className="eyebrow">ESPACE DE VENTE</span>
+        <h1>Nouvelle commande</h1>
+        <p>Sélectionnez les produits de la commande.</p>
+      </div>
 
-        setCategories(data.categories)
-        setProducts(data.products)
-        setLoading(false)
-      })
-      .catch(() => {
-        if (cancelled) return
+      <div className="categories" aria-label="Catégories">
+        <button
+          type="button"
+          className={`category-button ${
+            activeCategory === 'all' ? 'active' : ''
+          }`}
+          aria-pressed={activeCategory === 'all'}
+          onClick={() => setActiveCategory('all')}
+        >
+          Tout
+        </button>
 
-        setError(true)
-        setLoading(false)
-      })
+        {categories.map(category => (
+          <button
+            key={category.id}
+            type="button"
+            className={`category-button ${
+              activeCategory === category.id ? 'active' : ''
+            }`}
+            aria-pressed={activeCategory === category.id}
+            onClick={() => setActiveCategory(category.id)}
+          >
+            {category.name}
+          </button>
+        ))}
+      </div>
 
-    return () => {
-      cancelled = true
-    }
-  }, [])
+      <div className="products-heading">
+        <h2>
+          {activeCategory === 'all'
+            ? 'Tous les produits'
+            : categories.find(
+                category => category.id === activeCategory,
+              )?.name}
+        </h2>
 
-  const liveCategories = useLiveQuery(
+        <span>{visibleProducts.length} produits</span>
+      </div>
+
+      {visibleProducts.length === 0 && (
+        <div className="empty-catalogue">
+          Aucun produit disponible dans cette catégorie.
+        </div>
+      )}
+
+      <div className="products-grid">
+        {visibleProducts.map(product => (
+          <button
+            key={product.id}
+            className="product-card"
+            type="button"
+            aria-label={`Ajouter ${product.name}`}
+            onClick={() => onAdd(product)}
+          >
+            <span className="product-name">
+              {product.name}
+            </span>
+
+            {product.description && (
+              <span className="product-description">
+                {product.description}
+              </span>
+            )}
+
+            <span className="product-bottom">
+              <strong>
+                {product.priceCents === undefined
+                  ? 'Prix non renseigné'
+                  : formatPrice(product.priceCents)}
+              </strong>
+
+              <span className="product-plus" aria-hidden="true">
+                +
+              </span>
+            </span>
+          </button>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function OrderSummary({
+  items,
+}: {
+  items: CartItem[]
+}) {
+  const knownTotal = items.reduce(
+    (sum, item) => sum + (item.priceCents ?? 0),
+    0,
+  )
+
+  const hasUnknownPrices = items.some(
+    item => item.priceCents === undefined,
+  )
+
+  return (
+    <aside
+      className="order-panel"
+      aria-label="Récapitulatif de commande"
+    >
+      <div className="order-header">
+        <div>
+          <span className="eyebrow">RÉCAPITULATIF</span>
+          <h2>Commande</h2>
+        </div>
+
+        <span className="order-count">
+          {items.length} article{items.length > 1 ? 's' : ''}
+        </span>
+      </div>
+
+      <p className="order-subtitle">
+        Commande en préparation.
+      </p>
+
+      <div className="order-items">
+        {items.length === 0 ? (
+          <div className="empty-catalogue">
+            Sélectionnez un produit pour commencer.
+          </div>
+        ) : (
+          items.map(item => (
+            <div className="order-item" key={item.id}>
+              <div className="item-quantity">1×</div>
+
+              <div className="item-details">
+                <strong>{item.name}</strong>
+              </div>
+
+              <strong className="item-price">
+                {item.priceCents === undefined
+                  ? '—'
+                  : formatPrice(item.priceCents)}
+              </strong>
+            </div>
+          ))
+        )}
+      </div>
+
+      <div className="order-footer">
+        {items.length > 0 && (
+          <>
+            <div className="total-row">
+              <span>
+                {hasUnknownPrices
+                  ? 'Sous-total des prix connus'
+                  : 'Total'}
+              </span>
+
+              <strong>{formatPrice(knownTotal)}</strong>
+            </div>
+
+            {hasUnknownPrices && (
+              <p className="order-price-warning">
+                Total incomplet : certains articles
+                n'ont pas de prix renseigné.
+              </p>
+            )}
+          </>
+        )}
+
+        <button
+          className="finish-button"
+          type="button"
+          disabled
+        >
+          Terminer la commande
+          <span>→</span>
+        </button>
+
+        <p className="demo-note">
+          Brouillon temporaire — aucune commande validée.
+        </p>
+      </div>
+    </aside>
+  )
+}
+
+export default function App() {
+  const [screen, setScreen] = useState<Screen>('orders')
+
+  const [settingsTab, setSettingsTab] =
+    useState<SettingsTab>('categories')
+
+  const [items, setItems] = useState<CartItem[]>([])
+
+  const categories = useLiveQuery(
     () => db.categories.orderBy('position').toArray(),
     [],
   )
 
-  const displayedCategories = liveCategories?.filter(
-    (category) => category.active,
-  ) ?? categories
-
-  const liveProducts = useLiveQuery(
-    () => db.products.orderBy('position').toArray(),
+  const products = useLiveQuery(
+    () => db.products.toArray(),
     [],
   )
 
+  const activeCategories = (categories ?? [])
+    .filter(category => category.active)
+
   const activeCategoryIds = new Set(
-    displayedCategories.map((category) => category.id),
+    activeCategories.map(category => category.id),
   )
 
-  const displayedProducts = (liveProducts ?? products).filter(
-    (product) =>
-      product.active &&
-      activeCategoryIds.has(product.categoryId),
-  )
+  const activeProducts = (products ?? [])
+    .filter(
+      product =>
+        product.active &&
+        activeCategoryIds.has(product.categoryId),
+    )
+    .sort((a, b) => a.position - b.position)
 
-  const visibleProducts = displayedProducts.filter(
-    (product) =>
-      activeCategory === 'all' ||
-      product.categoryId === activeCategory,
-  )
+  function addProduct(product: Product) {
+    setItems(current => [
+      ...current,
+      {
+        id: crypto.randomUUID(),
+        productId: product.id,
+        name: product.name,
+        priceCents: product.priceCents,
+      },
+    ])
+  }
 
   return (
     <div className="restaurant-app">
       <header className="topbar">
         <div className="brand">
           <div className="brand-icon">R</div>
+
           <div>
             <strong>Restaurant</strong>
             <span>Prise de commandes</span>
@@ -97,20 +295,32 @@ export default function App() {
           <button
             className="screen-button"
             type="button"
-            onClick={() => setScreen(screen === 'orders' ? 'settings' : 'orders')}
+            onClick={() =>
+              setScreen(
+                screen === 'orders' ? 'settings' : 'orders',
+              )
+            }
           >
-            {screen === 'orders' ? 'Paramètres' : 'Retour aux commandes'}
+            {screen === 'orders'
+              ? 'Paramètres'
+              : 'Retour aux commandes'}
           </button>
+
           <div className="avatar">A</div>
         </div>
       </header>
 
       {screen === 'settings' ? (
         <div className="settings-workspace">
-          <nav className="settings-tabs" aria-label="Paramètres du catalogue">
+          <nav
+            className="settings-tabs"
+            aria-label="Paramètres du catalogue"
+          >
             <button
               type="button"
-              className={settingsTab === 'categories' ? 'active' : ''}
+              className={
+                settingsTab === 'categories' ? 'active' : ''
+              }
               onClick={() => setSettingsTab('categories')}
             >
               Catégories
@@ -118,14 +328,19 @@ export default function App() {
 
             <button
               type="button"
-              className={settingsTab === 'products' ? 'active' : ''}
+              className={
+                settingsTab === 'products' ? 'active' : ''
+              }
               onClick={() => setSettingsTab('products')}
             >
               Produits
             </button>
+
             <button
               type="button"
-              className={settingsTab === 'options' ? 'active' : ''}
+              className={
+                settingsTab === 'options' ? 'active' : ''
+              }
               onClick={() => setSettingsTab('options')}
             >
               Options
@@ -141,136 +356,21 @@ export default function App() {
           )}
         </div>
       ) : (
-      <div className="workspace">
-        <section className="catalogue-panel">
-          <div className="section-heading">
-            <div>
-              <span className="eyebrow">ESPACE DE VENTE</span>
-              <h1>Nouvelle commande</h1>
-              <p>Sélectionnez une catégorie pour afficher ses produits.</p>
-            </div>
-          </div>
-
-          {loading && (
-            <p role="status">Chargement du catalogue...</p>
+        <div className="workspace">
+          {categories === undefined || products === undefined ? (
+            <section className="catalogue-panel">
+              <p role="status">Chargement du catalogue...</p>
+            </section>
+          ) : (
+            <OrderCatalogue
+              categories={activeCategories}
+              products={activeProducts}
+              onAdd={addProduct}
+            />
           )}
 
-          {error && (
-            <p role="alert">
-              Impossible d'ouvrir la base de données locale.
-            </p>
-          )}
-
-          {!loading && !error && (
-            <>
-              <div className="categories" aria-label="Catégories">
-                <button
-                  type="button"
-                  className={`category-button ${
-                    activeCategory === 'all' ? 'active' : ''
-                  }`}
-                  aria-pressed={activeCategory === 'all'}
-                  onClick={() => setActiveCategory('all')}
-                >
-                  Tout
-                </button>
-
-                {displayedCategories.map((category) => (
-                  <button
-                    type="button"
-                    key={category.id}
-                    className={`category-button ${
-                      activeCategory === category.id ? 'active' : ''
-                    }`}
-                    aria-pressed={activeCategory === category.id}
-                    onClick={() => setActiveCategory(category.id)}
-                  >
-                    {category.name}
-                  </button>
-                ))}
-              </div>
-
-              <div className="products-heading">
-                <h2>
-                  {activeCategory === 'all'
-                    ? 'Tous les produits'
-                    : displayedCategories.find(
-                        (category) => category.id === activeCategory,
-                      )?.name}
-                </h2>
-
-                <span>{visibleProducts.length} produits</span>
-              </div>
-
-              {visibleProducts.length === 0 && (
-                <div className="empty-catalogue">
-                  Aucun produit disponible.
-                  <p>
-                    Le catalogue pourra être configuré
-                    depuis les paramètres.
-                  </p>
-                </div>
-              )}
-
-              <div className="products-grid">
-                {visibleProducts.map((product) => (
-                  <div className="product-card" key={product.id}>
-                    <span className="product-name">
-                      {product.name}
-                    </span>
-
-                    {product.description && (
-                      <span className="product-description">
-                        {product.description}
-                      </span>
-                    )}
-
-                    {product.priceCents !== undefined && (
-                      <span className="product-bottom">
-                        <strong>
-                          {formatPrice(product.priceCents)}
-                        </strong>
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-        </section>
-
-        <aside
-          className="order-panel"
-          aria-label="Récapitulatif de commande"
-        >
-          <div className="order-header">
-            <div>
-              <span className="eyebrow">RÉCAPITULATIF</span>
-              <h2>Commande</h2>
-            </div>
-          </div>
-
-          <p className="order-subtitle">
-            Aucune commande en cours.
-          </p>
-
-          <div className="order-items">
-            <div className="empty-catalogue">
-              Les articles apparaîtront ici.
-            </div>
-          </div>
-
-          <div className="order-footer">
-            <button
-              className="finish-button"
-              type="button"
-              disabled
-            >
-              Terminer la commande
-            </button>
-          </div>
-        </aside>
-      </div>
+          <OrderSummary items={items} />
+        </div>
       )}
     </div>
   )
