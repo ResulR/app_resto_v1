@@ -26,9 +26,17 @@ if (!secretPath) {
 const absolutePath = resolve(secretPath)
 const info = statSync(absolutePath)
 
-if (!info.isFile() || (info.mode & 0o077) !== 0) {
+// Le secret peut être lisible par le groupe dédié au service,
+// mais jamais accessible aux autres utilisateurs.
+// Modes acceptés : 600 et 640.
+const permissions = info.mode & 0o777
+
+if (
+  !info.isFile() ||
+  ![0o600, 0o640].includes(permissions)
+) {
   throw new Error(
-    'Le fichier secret doit être privé (permissions 600).',
+    'Permissions du secret invalides (600 ou 640 requis).',
   )
 }
 
