@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { CategoryManager } from '../features/catalogue/CategoryManager'
+import { ProductManager } from '../features/catalogue/ProductManager'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../shared/database/db'
 
@@ -20,6 +21,7 @@ function formatPrice(cents: number) {
 
 export default function App() {
   const [screen, setScreen] = useState<'orders' | 'settings'>('orders')
+  const [settingsTab, setSettingsTab] = useState<'categories' | 'products'>('categories')
   const [categories, setCategories] = useState<Category[]>([])
   const [products, setProducts] = useState<Product[]>([])
   const [activeCategory, setActiveCategory] = useState('all')
@@ -58,7 +60,16 @@ export default function App() {
     (category) => category.active,
   ) ?? categories
 
-  const visibleProducts = products.filter(
+  const liveProducts = useLiveQuery(
+    () => db.products.orderBy('position').toArray(),
+    [],
+  )
+
+  const displayedProducts = liveProducts?.filter(
+    (product) => product.active,
+  ) ?? products
+
+  const visibleProducts = displayedProducts.filter(
     (product) =>
       activeCategory === 'all' ||
       product.categoryId === activeCategory,
@@ -88,7 +99,29 @@ export default function App() {
       </header>
 
       {screen === 'settings' ? (
-        <CategoryManager />
+        <div className="settings-workspace">
+          <nav className="settings-tabs" aria-label="Paramètres du catalogue">
+            <button
+              type="button"
+              className={settingsTab === 'categories' ? 'active' : ''}
+              onClick={() => setSettingsTab('categories')}
+            >
+              Catégories
+            </button>
+
+            <button
+              type="button"
+              className={settingsTab === 'products' ? 'active' : ''}
+              onClick={() => setSettingsTab('products')}
+            >
+              Produits
+            </button>
+          </nav>
+
+          {settingsTab === 'categories'
+            ? <CategoryManager />
+            : <ProductManager />}
+        </div>
       ) : (
       <div className="workspace">
         <section className="catalogue-panel">

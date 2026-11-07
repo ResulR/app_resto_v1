@@ -546,3 +546,121 @@ button:focus-visible {
     font-size: 12px;
   }
 }
+
+.settings-workspace {
+  width: min(950px, 100%);
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.settings-tabs {
+  display: flex;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.settings-tabs button {
+  min-height: 48px;
+  padding: 12px 20px;
+  border: 1px solid #dce3ec;
+  border-radius: 11px;
+  background: white;
+  color: #25374c;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.settings-tabs button.active {
+  background: #25374c;
+  color: white;
+}
+
+.product-manager {
+  width: 100%;
+  padding: 20px 0;
+}
+
+.product-form {
+  display: grid;
+  gap: 12px;
+  padding: 25px;
+  margin: 25px 0;
+  background: white;
+  border: 1px solid #e8ebf0;
+  border-radius: 15px;
+}
+
+.product-form h2 {
+  margin: 0 0 12px;
+  font-size: 20px;
+}
+
+.product-form label {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.product-form input,
+.product-form select {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px;
+  border: 1px solid #dce3ec;
+  border-radius: 10px;
+  font: inherit;
+  background: white;
+}
+
+.product-form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.product-form-actions button {
+  min-height: 48px;
+  padding: 12px 18px;
+  border: 1px solid #dce3ec;
+  border-radius: 10px;
+  background: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.product-form-actions .product-save {
+  background: #25374c;
+  color: white;
+  border-color: #25374c;
+}
+
+.product-form-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.product-row-info {
+  display: grid;
+  gap: 6px;
+  overflow-wrap: anywhere;
+}
+
+.product-row-info span {
+  color: #8492a3;
+  font-size: 12px;
+}
+
+.product-success {
+  color: #167347;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+@media (max-width: 600px) {
+  .settings-workspace {
+    padding: 12px;
+  }
+
+  .product-form {
+    padding: 17px;
+  }
+}
