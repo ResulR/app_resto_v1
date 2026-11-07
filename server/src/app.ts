@@ -1,6 +1,8 @@
 import express from 'express'
+import type { Pool } from 'pg'
+import { createAuthRouter } from './authRoutes.js'
 
-export function createApp() {
+export function createApp(pool?: Pool) {
   const app = express()
 
   app.disable('x-powered-by')
@@ -13,12 +15,18 @@ export function createApp() {
     })
   })
 
-  // Fermées jusqu'à l'authentification et aux contrôles
-  // d'autorisation des prochaines étapes.
-  app.all(['/auth/*path', '/backups/*path'], (
-    _request,
-    response,
-  ) => {
+  if (pool) {
+    app.use('/auth', createAuthRouter(pool))
+  } else {
+    app.all('/auth/*path', (_request, response) => {
+      response.status(503).json({
+        error: 'Authentification non configurée',
+      })
+    })
+  }
+
+  // Sauvegardes fermées jusqu'à leur sécurisation.
+  app.all('/backups/*path', (_request, response) => {
     response.status(501).json({
       error: 'Fonctionnalité non activée',
     })

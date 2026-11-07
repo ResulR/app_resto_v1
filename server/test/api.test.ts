@@ -30,7 +30,7 @@ test('API locale et routes sensibles fermées', async () => {
     const auth = await fetch(`${base}/auth/login`, {
       method: 'POST',
     })
-    assert.equal(auth.status, 501)
+    assert.equal(auth.status, 503)
 
     const backup = await fetch(`${base}/backups/export`, {
       method: 'POST',
