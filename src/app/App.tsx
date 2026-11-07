@@ -1,4 +1,7 @@
 import { useEffect, useState } from 'react'
+import { CategoryManager } from '../features/catalogue/CategoryManager'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { db } from '../shared/database/db'
 
 import { getCatalogue } from '../features/catalogue/catalogueRepository'
 import type {
@@ -16,6 +19,7 @@ function formatPrice(cents: number) {
 }
 
 export default function App() {
+  const [screen, setScreen] = useState<'orders' | 'settings'>('orders')
   const [categories, setCategories] = useState<Category[]>([])
   const [products, setProducts] = useState<Product[]>([])
   const [activeCategory, setActiveCategory] = useState('all')
@@ -45,6 +49,15 @@ export default function App() {
     }
   }, [])
 
+  const liveCategories = useLiveQuery(
+    () => db.categories.orderBy('position').toArray(),
+    [],
+  )
+
+  const displayedCategories = liveCategories?.filter(
+    (category) => category.active,
+  ) ?? categories
+
   const visibleProducts = products.filter(
     (product) =>
       activeCategory === 'all' ||
@@ -63,10 +76,20 @@ export default function App() {
         </div>
 
         <div className="topbar-right">
+          <button
+            className="screen-button"
+            type="button"
+            onClick={() => setScreen(screen === 'orders' ? 'settings' : 'orders')}
+          >
+            {screen === 'orders' ? 'Paramètres' : 'Retour aux commandes'}
+          </button>
           <div className="avatar">A</div>
         </div>
       </header>
 
+      {screen === 'settings' ? (
+        <CategoryManager />
+      ) : (
       <div className="workspace">
         <section className="catalogue-panel">
           <div className="section-heading">
@@ -101,7 +124,7 @@ export default function App() {
                   Tout
                 </button>
 
-                {categories.map((category) => (
+                {displayedCategories.map((category) => (
                   <button
                     type="button"
                     key={category.id}
@@ -120,7 +143,7 @@ export default function App() {
                 <h2>
                   {activeCategory === 'all'
                     ? 'Tous les produits'
-                    : categories.find(
+                    : displayedCategories.find(
                         (category) => category.id === activeCategory,
                       )?.name}
                 </h2>
@@ -197,6 +220,7 @@ export default function App() {
           </div>
         </aside>
       </div>
+      )}
     </div>
   )
 }

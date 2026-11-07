@@ -432,3 +432,117 @@ button:focus-visible {
   margin: 8px 0 0;
   font-size: 13px;
 }
+
+.screen-button {
+  min-height: 44px;
+  border: 1px solid #dce3ec;
+  border-radius: 10px;
+  padding: 10px 16px;
+  background: #fff;
+  color: #25374c;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.category-manager {
+  width: min(900px, 100%);
+  margin: 0 auto;
+  padding: 34px 22px;
+}
+
+.category-form {
+  margin: 32px 0;
+  display: grid;
+  gap: 12px;
+}
+
+.category-form label {
+  font-weight: 700;
+}
+
+.category-form-row {
+  display: flex;
+  gap: 10px;
+}
+
+.category-form-row input {
+  min-height: 48px;
+  flex: 1;
+  min-width: 0;
+  border: 1px solid #dce3ec;
+  border-radius: 10px;
+  padding: 12px;
+  font: inherit;
+}
+
+.category-form-row button {
+  border: 0;
+  border-radius: 10px;
+  background: #25374c;
+  color: white;
+  padding: 12px 20px;
+  font-weight: 700;
+}
+
+.category-list {
+  display: grid;
+  gap: 10px;
+}
+
+.category-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+  background: white;
+  border: 1px solid #e8ebf0;
+  border-radius: 12px;
+}
+
+.category-row-name {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.category-actions {
+  display: flex;
+  gap: 7px;
+}
+
+.category-actions button {
+  min-height: 44px;
+  min-width: 44px;
+  border: 1px solid #dce3ec;
+  background: white;
+  border-radius: 9px;
+  cursor: pointer;
+  padding: 8px 12px;
+}
+
+.category-actions button:disabled,
+.category-form-row button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.category-error {
+  color: #b42318;
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .category-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .category-actions {
+    justify-content: flex-end;
+  }
+
+  .screen-button {
+    padding: 9px;
+    font-size: 12px;
+  }
+}
