@@ -5,10 +5,24 @@ import {
   loginAdmin,
   logoutAdmin,
 } from './authClient'
+import { resolveAccess } from './accessController'
+import {
+  authorizeOfflineDevice,
+  hasOfflineAuthorization,
+  clearOfflineAuthorization,
+} from './offlineAccess'
+
+const accessDependencies = {
+  checkServerSession: getAdminSession,
+  authorizeOfflineDevice,
+  hasOfflineAuthorization,
+  clearOfflineAuthorization,
+}
 
 type SessionState =
   | 'loading'
   | 'authenticated'
+  | 'offline'
   | 'anonymous'
   | 'unavailable'
 
@@ -22,11 +36,25 @@ export function AdminAccount() {
   useEffect(() => {
     let cancelled = false
 
-    getAdminSession()
-      .then(authenticated => {
-        if (!cancelled) {
+    resolveAccess(accessDependencies)
+      .then(decision => {
+        if (cancelled) return
+
+        if (decision.status === 'online') {
+          setState('authenticated')
+
+          if (!decision.offlineReady) {
+            setMessage(
+              'Connexion active, mais accès hors ligne indisponible.',
+            )
+          }
+        } else if (decision.status === 'offline') {
+          setState('offline')
+        } else {
           setState(
-            authenticated ? 'authenticated' : 'anonymous',
+            decision.reason === 'session-invalid'
+              ? 'anonymous'
+              : 'unavailable',
           )
         }
       })
@@ -61,9 +89,24 @@ export function AdminAccount() {
         )
       }
 
+      // La vérification serveur précède impérativement
+      // la création de l'autorisation locale.
+      let offlineReady = false
+
+      try {
+        await authorizeOfflineDevice()
+        offlineReady = true
+      } catch {
+        // Ne pas invalider une session serveur valide.
+      }
+
       setPassword('')
       setState('authenticated')
-      setMessage('Connexion administrateur réussie.')
+      setMessage(
+        offlineReady
+          ? 'Connexion réussie. Appareil autorisé hors ligne.'
+          : 'Connexion réussie. Accès hors ligne indisponible.',
+      )
     } catch (cause) {
       setError(
         cause instanceof Error
@@ -83,7 +126,13 @@ export function AdminAccount() {
     setMessage('')
 
     try {
+      // Révoquer d'abord la session sur le serveur.
       await logoutAdmin()
+
+      // Ne confirmer la déconnexion locale qu'après
+      // suppression effective de l'autorisation.
+      await clearOfflineAuthorization()
+
       setState('anonymous')
       setPassword('')
       setMessage('Déconnexion effectuée.')
@@ -110,6 +159,21 @@ export function AdminAccount() {
 
       {state === 'loading' && (
         <p role="status">Vérification de la session...</p>
+      )}
+
+      {state === 'offline' && (
+        <div className="admin-account-card">
+          <p className="admin-account-warning" role="status">
+            Appareil autorisé hors ligne.
+          </p>
+          <p>
+            Le serveur est inaccessible. Les commandes restent
+            stockées localement.
+          </p>
+          <p>
+            La déconnexion serveur nécessite une connexion Internet.
+          </p>
+        </div>
       )}
 
       {state === 'authenticated' && (
@@ -176,9 +240,9 @@ export function AdminAccount() {
       )}
 
       <p className="admin-account-info">
-        Cette étape vérifie la connexion au serveur.
-        Le verrouillage de l'application et l'accès hors ligne
-        seront intégrés au point 7.4.
+        L'autorisation locale est maintenant préparée et
+        vérifiée depuis cet écran. Le verrouillage général
+        sera activé après validation des tests navigateur.
       </p>
     </section>
   )
