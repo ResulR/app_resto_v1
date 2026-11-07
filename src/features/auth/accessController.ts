@@ -130,3 +130,28 @@ export async function resolveGuardedAccess(
 
   return resolveAccess(access)
 }
+
+/**
+ * Empêche une vérification devenue obsolète de créer
+ * ou de conserver une autorisation locale.
+ *
+ * Exemple : une vérification démarre, puis l'administrateur
+ * se déconnecte pendant l'écriture IndexedDB.
+ */
+export async function authorizeForCurrentVerification(
+  isCurrent: () => boolean,
+  isLogoutPending: () => boolean,
+  grant: () => Promise<void>,
+  revokeLocal: () => Promise<void>,
+): Promise<void> {
+  if (!isCurrent() || isLogoutPending()) {
+    throw new Error('Vérification devenue obsolète.')
+  }
+
+  await grant()
+
+  if (!isCurrent() || isLogoutPending()) {
+    await revokeLocal()
+    throw new Error('Autorisation locale annulée.')
+  }
+}

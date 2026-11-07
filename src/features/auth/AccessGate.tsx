@@ -7,7 +7,10 @@ import {
   logoutAdmin,
 } from './authClient'
 
-import { resolveGuardedAccess } from './accessController'
+import {
+  resolveGuardedAccess,
+  authorizeForCurrentVerification,
+} from './accessController'
 import {
   authorizeOfflineDevice,
   clearOfflineAuthorization,
@@ -59,7 +62,13 @@ export function AccessGate({
       const decision = await resolveGuardedAccess(
         {
           checkServerSession: getAdminSession,
-          authorizeOfflineDevice,
+          authorizeOfflineDevice: () =>
+            authorizeForCurrentVerification(
+              () => currentId === verificationId.current,
+              () => hasPendingLogout(window.localStorage),
+              authorizeOfflineDevice,
+              clearOfflineAuthorization,
+            ),
           hasOfflineAuthorization,
           clearOfflineAuthorization,
         },
