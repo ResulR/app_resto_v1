@@ -748,3 +748,34 @@ button:focus-visible {
 .settings-tabs {
   flex-wrap: wrap;
 }
+
+.availability-button {
+  min-height: 44px;
+  border-radius: 9px;
+  padding: 9px 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.availability-button.available {
+  background: #e8f7ee;
+  color: #167347;
+  border: 1px solid #bde7ca;
+}
+
+.availability-button.unavailable {
+  background: #fff0ee;
+  color: #b42318;
+  border: 1px solid #f4c7c3;
+}
+
+.unavailable-label {
+  color: #b42318 !important;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.availability-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../../shared/database/db'
+import { setOptionAvailability } from './availabilityRepository'
 import {
   createOptionGroup,
   renameOptionGroup,
@@ -276,9 +277,39 @@ export function OptionManager() {
                 <div className="product-row-info">
                   <strong>{option.name}</strong>
                   <span>{priceLabel(option.priceCents)}</span>
+                  {!option.active && (
+                    <span className="unavailable-label">
+                      Exclue des sélections
+                    </span>
+                  )}
                 </div>
 
                 <div className="category-actions">
+                  <button
+                    type="button"
+                    className={
+                      option.active
+                        ? 'availability-button available'
+                        : 'availability-button unavailable'
+                    }
+                    disabled={busy}
+                    aria-label={
+                      option.active
+                        ? `Désactiver ${option.name}`
+                        : `Activer ${option.name}`
+                    }
+                    onClick={() =>
+                      void execute(() =>
+                        setOptionAvailability(
+                          option.id,
+                          !option.active,
+                        ),
+                      )
+                    }
+                  >
+                    {option.active ? 'Disponible' : 'Indisponible'}
+                  </button>
+
                   <button
                     type="button"
                     disabled={busy}

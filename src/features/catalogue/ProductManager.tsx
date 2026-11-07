@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import { db } from '../../shared/database/db'
+import { setProductAvailability } from './availabilityRepository'
 import { VariantManager } from './VariantManager'
 import type { Product } from '../../shared/database/models'
 
@@ -247,6 +248,11 @@ export function ProductManager() {
             <div className="category-row" key={product.id}>
               <div className="product-row-info">
                 <strong>{product.name}</strong>
+                {!product.active && (
+                  <span className="unavailable-label">
+                    Masqué du catalogue
+                  </span>
+                )}
                 <span>
                   {category?.name ?? 'Catégorie inconnue'}
                   {' · '}
@@ -255,6 +261,31 @@ export function ProductManager() {
               </div>
 
               <div className="category-actions product-actions">
+                <button
+                  type="button"
+                  className={
+                    product.active
+                      ? 'availability-button available'
+                      : 'availability-button unavailable'
+                  }
+                  aria-label={
+                    product.active
+                      ? `Désactiver ${product.name}`
+                      : `Activer ${product.name}`
+                  }
+                  disabled={busy}
+                  onClick={() =>
+                    void execute(() =>
+                      setProductAvailability(
+                        product.id,
+                        !product.active,
+                      ),
+                    )
+                  }
+                >
+                  {product.active ? 'Disponible' : 'Indisponible'}
+                </button>
+
                 <button
                   type="button"
                   disabled={busy}
