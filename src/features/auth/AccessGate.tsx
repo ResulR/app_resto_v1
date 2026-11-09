@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { abortActiveBackupUpload } from '../backups/backupRuntime'
 import type { FormEvent, ReactNode } from 'react'
 
 import {
@@ -128,6 +129,9 @@ export function AccessGate({
     // Verrouillage immédiat : aucune requête réseau ici.
     // Invalide toutes les vérifications déjà lancées.
     const onAuthLock = () => {
+      // Interrompre immédiatement tout envoi en cours.
+      abortActiveBackupUpload()
+
       verificationId.current += 1
       setPassword('')
       setError('')
@@ -136,9 +140,28 @@ export function AccessGate({
     }
 
     const onStorageChanged = (event: StorageEvent) => {
+      const logoutKey =
+        'restaurant-pwa:pending-server-logout:v1'
+
+      // Une nouvelle déconnexion dans un autre onglet
+      // doit interrompre la transmission immédiatement.
+      if (
+        event.storageArea === window.localStorage &&
+        (
+          (event.key === logoutKey &&
+            event.newValue !== null) ||
+          (
+            event.key === null &&
+            hasPendingLogout(window.localStorage)
+          )
+        )
+      ) {
+        abortActiveBackupUpload()
+      }
+
       if (
         event.key === null ||
-        event.key === 'restaurant-pwa:pending-server-logout:v1'
+        event.key === logoutKey
       ) {
         void verifyAccess()
       }
