@@ -13,6 +13,19 @@ import { createRestaurantSnapshot } from './snapshotRepository'
 import { getAdminSession } from '../auth/authClient'
 import { hasPendingLogout } from '../auth/logoutFlow'
 
+let activeUploadController: AbortController | null = null
+
+/**
+ * À appeler lorsque la caisse se verrouille.
+ *
+ * L'annulation HTTP ne supprime jamais la sauvegarde
+ * persistante. Une réponse peut néanmoins avoir
+ * déjà été enregistrée par le serveur.
+ */
+export function abortActiveBackupUpload(): void {
+  activeUploadController?.abort()
+}
+
 /**
  * Vérification en ligne obligatoire.
  *
@@ -60,29 +73,57 @@ async function capturePendingBackup():
 async function deliverPendingBackup(
   envelope: BackupEnvelope,
 ): Promise<void> {
-  // Dernière vérification juste avant l'envoi.
-  if (!(await canUploadBackup())) {
-    throw new Error(
-      'Transmission interdite : session non autorisée.',
+  const controller = new AbortController()
+  activeUploadController = controller
+
+  try {
+    // Une déconnexion peut arriver pendant la
+    // vérification asynchrone de la session.
+    if (
+      !(await canUploadBackup()) ||
+      controller.signal.aborted
+    ) {
+      throw new Error(
+        'Transmission interdite : session non autorisée.',
+      )
+    }
+
+    const receipt = await uploadBackup(
+      envelope,
+      fetch,
+      controller.signal,
     )
-  }
 
-  const receipt = await uploadBackup(envelope)
+    // Ne jamais effacer l'outbox après une annulation
+    // ou une déconnexion intervenue pendant l'envoi.
+    if (
+      controller.signal.aborted ||
+      hasPendingLogout(window.localStorage)
+    ) {
+      throw new Error(
+        'Sauvegarde interrompue : confirmation conservée en attente.',
+      )
+    }
 
-  if (receipt.sha256 !== envelope.sha256) {
-    throw new Error(
-      'Confirmation serveur incohérente.',
+    if (receipt.sha256 !== envelope.sha256) {
+      throw new Error(
+        'Confirmation serveur incohérente.',
+      )
+    }
+
+    const confirmed = await confirmPendingBackup(
+      receipt.sha256,
     )
-  }
 
-  const confirmed = await confirmPendingBackup(
-    receipt.sha256,
-  )
-
-  if (!confirmed) {
-    throw new Error(
-      'Confirmation locale impossible.',
-    )
+    if (!confirmed) {
+      throw new Error(
+        'Confirmation locale impossible.',
+      )
+    }
+  } finally {
+    if (activeUploadController === controller) {
+      activeUploadController = null
+    }
   }
 }
 
