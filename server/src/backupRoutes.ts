@@ -249,6 +249,7 @@ export function createBackupRouter(pool: Pool): Router {
       id: backup.id,
       formatVersion: backup.format_version,
       createdAt: backup.created_at,
+      sha256: validateBackup(backup.snapshot).sha256,
       snapshot: backup.snapshot,
     })
   })

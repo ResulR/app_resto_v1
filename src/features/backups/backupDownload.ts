@@ -12,6 +12,7 @@ export interface RestorableBackup {
   formatVersion: number
   createdAt: string
   snapshot: RestaurantSnapshot
+  sha256: string
 }
 
 /**
@@ -66,6 +67,8 @@ export async function downloadLatestBackup(
     !/^[a-f0-9]{8}(-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i
       .test(backup.id) ||
     backup.formatVersion !== SNAPSHOT_VERSION ||
+    typeof backup.sha256 !== 'string' ||
+    !/^[a-f0-9]{64}$/.test(backup.sha256) ||
     typeof backup.createdAt !== 'string' ||
     !Number.isFinite(Date.parse(backup.createdAt))
   ) {
@@ -74,10 +77,31 @@ export async function downloadLatestBackup(
 
   validateSnapshot(backup.snapshot)
 
+  const encoded = new TextEncoder().encode(
+    JSON.stringify(backup.snapshot),
+  )
+
+  const digest = await crypto.subtle.digest(
+    'SHA-256',
+    encoded,
+  )
+
+  const actualHash = Array.from(
+    new Uint8Array(digest),
+    byte => byte.toString(16).padStart(2, '0'),
+  ).join('')
+
+  if (actualHash !== backup.sha256) {
+    throw new Error(
+      'Intégrité de la sauvegarde téléchargée incorrecte.',
+    )
+  }
+
   return {
     id: backup.id,
     formatVersion: backup.formatVersion,
     createdAt: backup.createdAt,
     snapshot: backup.snapshot,
+    sha256: backup.sha256,
   }
 }
