@@ -69,6 +69,7 @@ export async function prepareBackupEnvelope(
 export async function uploadBackup(
   envelope: BackupEnvelope,
   send: typeof fetch = fetch,
+  signal?: AbortSignal,
 ): Promise<BackupReceipt> {
   if (
     !/^[a-f0-9]{64}$/.test(envelope.sha256)
@@ -80,6 +81,7 @@ export async function uploadBackup(
     method: 'POST',
     credentials: 'same-origin',
     cache: 'no-store',
+    signal,
     headers: {
       'Content-Type': 'application/json',
     },

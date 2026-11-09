@@ -204,3 +204,107 @@ test('SHA-256 correspond exactement au JSON envoyé', async () => {
       /Failed to fetch/,
     )
   })
+
+test('signal AbortController transmis au réseau', async () => {
+  const envelope = await prepareBackupEnvelope(snapshot())
+  const controller = new AbortController()
+
+  let receivedSignal
+
+  const receipt = await uploadBackup(
+    envelope,
+    async (_url, options) => {
+      receivedSignal = options.signal
+
+      return {
+        status: 201,
+        async json() {
+          return {
+            id: '12345678-1234-8234-8234-123456789abc',
+            sha256: envelope.sha256,
+            stored: true,
+            duplicate: false,
+          }
+        },
+      }
+    },
+    controller.signal,
+  )
+
+  assert.equal(receivedSignal, controller.signal)
+  assert.equal(receipt.stored, true)
+})
+
+test('annulation pendant une requête HTTP', async () => {
+  const envelope = await prepareBackupEnvelope(snapshot())
+  const controller = new AbortController()
+
+  let started
+
+  const requestStarted = new Promise(resolve => {
+    started = resolve
+  })
+
+  const transmission = uploadBackup(
+    envelope,
+    async (_url, options) => {
+      return new Promise((_resolve, reject) => {
+        if (options.signal.aborted) {
+          reject(
+            new DOMException(
+              'Requête annulée',
+              'AbortError',
+            ),
+          )
+          return
+        }
+
+        options.signal.addEventListener(
+          'abort',
+          () => reject(
+            new DOMException(
+              'Requête annulée',
+              'AbortError',
+            ),
+          ),
+          { once: true },
+        )
+
+        started()
+      })
+    },
+    controller.signal,
+  )
+
+  await requestStarted
+
+  controller.abort()
+
+  await assert.rejects(
+    transmission,
+    error => error.name === 'AbortError',
+  )
+})
+
+test('signal déjà annulé refuse la transmission', async () => {
+  const envelope = await prepareBackupEnvelope(snapshot())
+  const controller = new AbortController()
+
+  controller.abort()
+
+  await assert.rejects(
+    uploadBackup(
+      envelope,
+      async (_url, options) => {
+        assert.equal(options.signal.aborted, true)
+
+        throw new DOMException(
+          'Requête annulée',
+          'AbortError',
+        )
+      },
+      controller.signal,
+    ),
+    error => error.name === 'AbortError',
+  )
+})
