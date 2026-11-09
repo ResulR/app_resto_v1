@@ -6,6 +6,7 @@ export const BACKUP_RETRY_INTERVAL_MS =
 
 export type BackupAttemptResult =
   | 'sent'
+  | 'unchanged'
   | 'busy'
   | 'offline'
   | 'unauthorized'
@@ -15,7 +16,7 @@ export type BackupAttemptResult =
 export interface BackupDependencies<Snapshot> {
   isOnline: () => boolean
   isAuthorized: () => Promise<boolean>
-  capture: () => Promise<Snapshot>
+  capture: () => Promise<Snapshot | null>
   send: (snapshot: Snapshot) => Promise<void>
   now: () => number
 }
@@ -85,6 +86,16 @@ export class BackupCoordinator<Snapshot> {
       }
 
       const snapshot = await capture()
+
+      // Les données sont identiques à la dernière
+      // sauvegarde confirmée. Aucun envoi nécessaire.
+      if (snapshot === null) {
+        this.lastError = null
+        this.nextAttemptAt =
+          now() + BACKUP_SUCCESS_INTERVAL_MS
+
+        return 'unchanged'
+      }
 
       // Revérifier l'autorisation après la lecture locale.
       // Une déconnexion a pu intervenir entre-temps.

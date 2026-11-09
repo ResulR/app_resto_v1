@@ -44,6 +44,16 @@ function setup(uploadHandler) {
   }
 
   const imports = {
+    './backupChangeDetection': {
+      async fingerprintBackupData() {
+        return 'a'.repeat(64)
+      },
+      wasBackupDataConfirmed() {
+        return false
+      },
+      markBackupDataConfirmed() {},
+    },
+
     './backupCoordinator': {
       BackupCoordinator: class {
         constructor(dependencies) {

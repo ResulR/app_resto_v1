@@ -1,5 +1,11 @@
 import { BackupCoordinator } from './backupCoordinator'
 import {
+  fingerprintBackupData,
+  wasBackupDataConfirmed,
+  markBackupDataConfirmed,
+} from './backupChangeDetection'
+
+import {
   getPendingBackup,
   stagePendingBackup,
   confirmPendingBackup,
@@ -55,12 +61,22 @@ export async function canUploadBackup(): Promise<boolean> {
  * obligatoirement toute transmission réseau.
  */
 async function capturePendingBackup():
-  Promise<BackupEnvelope> {
+  Promise<BackupEnvelope | null> {
   const pending = await getPendingBackup()
 
+  // Toujours transmettre d'abord une sauvegarde
+  // antérieure qui attend sa confirmation.
   if (pending) return pending
 
   const snapshot = await createRestaurantSnapshot()
+  const fingerprint = await fingerprintBackupData(snapshot)
+
+  // Ne pas créer un instantané si les données n'ont
+  // pas changé depuis la dernière confirmation.
+  if (wasBackupDataConfirmed(fingerprint)) {
+    return null
+  }
+
   const prepared = await prepareBackupEnvelope(snapshot)
 
   return stagePendingBackup(prepared)
@@ -120,6 +136,16 @@ async function deliverPendingBackup(
         'Confirmation locale impossible.',
       )
     }
+
+    // L'empreinte est enregistrée seulement après
+    // la confirmation de cet instantané précis.
+    // Si les données locales ont changé pendant
+    // l'envoi, la prochaine capture sera différente.
+    const fingerprint = await fingerprintBackupData(
+      envelope.snapshot,
+    )
+
+    markBackupDataConfirmed(fingerprint)
   } finally {
     if (activeUploadController === controller) {
       activeUploadController = null

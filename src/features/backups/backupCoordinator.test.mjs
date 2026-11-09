@@ -298,3 +298,25 @@ test('erreur de capture libère le verrou', async () => {
     'failed',
   )
 })
+
+test('données inchangées : aucun envoi', async () => {
+  let sends = 0
+
+  const coordinator = new BackupCoordinator({
+    isOnline: () => true,
+    isAuthorized: async () => true,
+    capture: async () => null,
+    send: async () => {
+      sends++
+    },
+    now: () => 1_000_000,
+  })
+
+  assert.equal(
+    await coordinator.attempt(),
+    'unchanged',
+  )
+
+  assert.equal(sends, 0)
+  assert.equal(coordinator.isRunning, false)
+})
