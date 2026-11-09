@@ -1,6 +1,7 @@
 import express from 'express'
 import type { Pool } from 'pg'
 import { createAuthRouter } from './authRoutes.js'
+import { createBackupRouter } from './backupRoutes.js'
 
 export function createApp(pool?: Pool) {
   const app = express()
@@ -30,6 +31,12 @@ export function createApp(pool?: Pool) {
     next()
   })
 
+  // Corps plus volumineux réservé à l'espace sauvegardes.
+  app.use(
+    '/backups',
+    express.json({ limit: '5mb' }),
+  )
+
   app.use(express.json({ limit: '1mb' }))
 
   app.get('/health', (_request, response) => {
@@ -41,6 +48,7 @@ export function createApp(pool?: Pool) {
 
   if (pool) {
     app.use('/auth', createAuthRouter(pool))
+    app.use('/backups', createBackupRouter(pool))
   } else {
     app.all('/auth/*path', (_request, response) => {
       response.status(503).json({
