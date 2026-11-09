@@ -62,13 +62,35 @@ export async function canUploadBackup(): Promise<boolean> {
  */
 async function capturePendingBackup():
   Promise<BackupEnvelope | null> {
+  // Les données déjà sauvegardées dans l'outbox
+  // restent prioritaires, même si la caisse locale
+  // a été vidée depuis leur capture.
   const pending = await getPendingBackup()
-
-  // Toujours transmettre d'abord une sauvegarde
-  // antérieure qui attend sa confirmation.
   if (pending) return pending
 
   const snapshot = await createRestaurantSnapshot()
+
+  // Un appareil nouvellement installé ne doit pas
+  // envoyer un instantané vide et devenir la source
+  // la plus récente de restauration.
+  //
+  // Les paramètres seuls ne prouvent pas qu'une
+  // caisse possède un catalogue ou des commandes.
+  const containsRestaurantData = (
+    snapshot.tables.categories.length > 0 ||
+    snapshot.tables.products.length > 0 ||
+    snapshot.tables.variants.length > 0 ||
+    snapshot.tables.optionGroups.length > 0 ||
+    snapshot.tables.productOptionGroups.length > 0 ||
+    snapshot.tables.options.length > 0 ||
+    snapshot.tables.drafts.length > 0 ||
+    snapshot.tables.orders.length > 0
+  )
+
+  if (!containsRestaurantData) {
+    return null
+  }
+
   const fingerprint = await fingerprintBackupData(snapshot)
 
   // Ne pas créer un instantané si les données n'ont
