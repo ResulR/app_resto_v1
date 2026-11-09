@@ -21,6 +21,8 @@ import {
   clearOfflineAuthorization,
 } from './offlineAccess'
 
+import { BackupRestorePanel } from '../backups/BackupRestorePanel'
+
 const accessDependencies = {
   checkServerSession: getAdminSession,
   authorizeOfflineDevice,
@@ -294,6 +296,7 @@ export function AdminAccount() {
           >
             {busy ? 'Déconnexion...' : 'Se déconnecter'}
           </button>
+          <BackupRestorePanel />
         </div>
       )}
 
