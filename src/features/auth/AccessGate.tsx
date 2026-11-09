@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { abortActiveBackupUpload } from '../backups/backupRuntime'
+import { BackupLifecycle } from '../backups/BackupLifecycle'
 import type { FormEvent, ReactNode } from 'react'
 
 import {
@@ -290,6 +291,7 @@ export function AccessGate({
         )}
 
         {children}
+        <BackupLifecycle />
       </>
     )
   }
