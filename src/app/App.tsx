@@ -25,6 +25,7 @@ import {
   editCartUnit,
   type CartItem,
   type FreeItemInput,
+  type SelectedVariant,
 } from '../features/orders/cart'
 import { FreeItemForm } from '../features/orders/FreeItemForm'
 import { DraftManager } from '../features/orders/DraftManager'
@@ -464,8 +465,11 @@ export default function App() {
     product: Product,
     options: SelectedOption[] = [],
     note = '',
+    variant?: SelectedVariant,
   ) {
-    setItems(current => addToCart(current, product, options, note))
+    setItems(current =>
+      addToCart(current, product, options, note, variant),
+    )
   }
 
   function appendFreeItem(input: FreeItemInput) {
@@ -586,16 +590,27 @@ export default function App() {
     setItems(current => changeCartQuantity(current, id, delta))
   }
 
-  function editItem(item: CartItem) {
-    setEditingItemId(item.id)
-    setCustomizing({
-      id: item.productId,
-      categoryId: '',
-      name: item.name,
-      priceCents: item.priceCents,
-      position: 0,
-      active: true,
-    })
+  async function editItem(item: CartItem) {
+    setOrderError('')
+
+    try {
+      const original = await db.products.get(item.productId)
+
+      if (!original?.active || original.archived) {
+        throw new Error(
+          'Produit retiré ou indisponible : modification impossible.',
+        )
+      }
+
+      setEditingItemId(item.id)
+      setCustomizing(original)
+    } catch (cause) {
+      setOrderError(
+        cause instanceof Error
+          ? cause.message
+          : 'Modification impossible.',
+      )
+    }
   }
 
   async function addProduct(product: Product) {
@@ -905,11 +920,14 @@ export default function App() {
           initialNote={
             items.find(item => item.id === editingItemId)?.note
           }
+          initialVariant={
+            items.find(item => item.id === editingItemId)?.variant
+          }
           onCancel={() => {
             setCustomizing(null)
             setEditingItemId(null)
           }}
-          onConfirm={(product, options, note) => {
+          onConfirm={(product, options, note, variant) => {
             if (editingItemId) {
               setItems(current =>
                 editCartUnit(
@@ -918,10 +936,11 @@ export default function App() {
                   product,
                   options,
                   note,
+                  variant,
                 ),
               )
             } else {
-              appendProduct(product, options, note)
+              appendProduct(product, options, note, variant)
             }
 
             setCustomizing(null)

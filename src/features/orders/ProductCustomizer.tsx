@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../../shared/database/db'
 import { getAvailableOptionsForProduct } from '../catalogue/availabilityRepository'
+import type { SelectedVariant } from './cart'
 import type {
   Product,
   ProductOption,
@@ -18,11 +19,13 @@ type Props = {
   product: Product
   initialOptions?: SelectedOption[]
   initialNote?: string
+  initialVariant?: SelectedVariant
   onCancel: () => void
   onConfirm: (
     product: Product,
     options: SelectedOption[],
     note: string,
+    variant?: SelectedVariant,
   ) => void
 }
 
@@ -37,6 +40,7 @@ export function ProductCustomizer({
   product,
   initialOptions = [],
   initialNote = '',
+  initialVariant,
   onCancel,
   onConfirm,
 }: Props) {
@@ -44,17 +48,19 @@ export function ProductCustomizer({
     () => initialOptions.map(option => option.id),
   )
   const [note, setNote] = useState(initialNote)
+  const [variantId, setVariantId] = useState(initialVariant?.id ?? '')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
   const data = useLiveQuery(async () => {
-    const [links, groups, availableOptions] = await Promise.all([
+    const [links, groups, availableOptions, variants] = await Promise.all([
       db.productOptionGroups
         .where('productId')
         .equals(product.id)
         .toArray(),
       db.optionGroups.orderBy('position').toArray(),
       getAvailableOptionsForProduct(product.id),
+      db.variants.where('productId').equals(product.id).sortBy('position'),
     ])
 
     const ids = new Set(links.map(link => link.groupId))
@@ -62,6 +68,7 @@ export function ProductCustomizer({
     return {
       groups: groups.filter(group => ids.has(group.id)),
       options: availableOptions,
+      variants,
     }
   }, [product.id])
 
@@ -106,6 +113,30 @@ export function ProductCustomizer({
         )
       }
 
+      const variants = await db.variants
+        .where('productId')
+        .equals(product.id)
+        .toArray()
+
+      const variant = variantId
+        ? variants.find(item => item.id === variantId)
+        : undefined
+
+      if (variantId && !variant) {
+        throw new Error(
+          'Cette taille est devenue indisponible.',
+        )
+      }
+
+      const selectedVariant: SelectedVariant | undefined =
+        variant
+          ? {
+              id: variant.id,
+              name: variant.name,
+              priceCents: variant.priceCents,
+            }
+          : undefined
+
       const groups = await db.optionGroups.toArray()
       const groupNames = new Map(
         groups.map(group => [group.id, group.name]),
@@ -120,7 +151,16 @@ export function ProductCustomizer({
           priceCents: option.priceCents,
         }))
 
-      onConfirm(currentProduct, choices, note.trim())
+      onConfirm(
+        {
+          ...currentProduct,
+          priceCents:
+            variant?.priceCents ?? currentProduct.priceCents,
+        },
+        choices,
+        note.trim(),
+        selectedVariant,
+      )
     } catch (cause) {
       setError(
         cause instanceof Error
@@ -163,6 +203,54 @@ export function ProductCustomizer({
         <div className="customizer-content">
           {data === undefined && <p>Chargement des options...</p>}
 
+          {data !== undefined &&
+            (data.variants.length > 0 || initialVariant) && (
+              <fieldset className="customizer-group">
+                <legend>Taille / Variante (facultative)</legend>
+
+                <label className="customizer-option">
+                  <input
+                    type="radio"
+                    name="product-variant"
+                    checked={variantId === ''}
+                    disabled={busy}
+                    onChange={() => setVariantId('')}
+                  />
+                  <span>Sans variante</span>
+                </label>
+
+                {data.variants.map(variant => (
+                  <label
+                    className="customizer-option"
+                    key={variant.id}
+                  >
+                    <input
+                      type="radio"
+                      name="product-variant"
+                      checked={variantId === variant.id}
+                      disabled={busy}
+                      onChange={() => setVariantId(variant.id)}
+                    />
+                    <span>{variant.name}</span>
+                    {variant.priceCents !== undefined && (
+                      <strong>
+                        {formatPrice(variant.priceCents)}
+                      </strong>
+                    )}
+                  </label>
+                ))}
+
+                {variantId !== '' &&
+                  !data.variants.some(
+                    variant => variant.id === variantId
+                  ) && (
+                    <p role="alert" className="category-error">
+                      Taille supprimée : choisissez une autre variante.
+                    </p>
+                  )}
+              </fieldset>
+            )}
+
           {data?.groups.map(group => {
             const options = data.options.filter(
               option => option.groupId === group.id,
@@ -175,7 +263,10 @@ export function ProductCustomizer({
                 <div className="customizer-group-header">
                   <h3>{group.name}</h3>
 
-                  <div className="customizer-actions">
+                  {['salade', 'salades'].includes(
+                    group.name.trim().toLocaleLowerCase('fr-BE'),
+                  ) && (
+                    <div className="customizer-actions">
                     <button
                       type="button"
                       disabled={busy}
@@ -192,6 +283,7 @@ export function ProductCustomizer({
                       Aucune sélection
                     </button>
                   </div>
+                  )}
                 </div>
 
                 <div className="customizer-options">

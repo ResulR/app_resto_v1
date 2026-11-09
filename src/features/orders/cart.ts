@@ -1,11 +1,18 @@
 import type { Product } from '../../shared/database/models'
 import type { SelectedOption } from './ProductCustomizer'
 
+export type SelectedVariant = {
+  id: string
+  name: string
+  priceCents?: number
+}
+
 export type CartItem = {
   id: string
   productId: string
   name: string
   priceCents?: number
+  variant?: SelectedVariant
   options: SelectedOption[]
   note: string
   quantity: number
@@ -26,6 +33,10 @@ function sameItem(a: CartItem, b: CartItem): boolean {
 
   return (
     a.productId === b.productId &&
+    (a.variant?.id ?? null) === (b.variant?.id ?? null) &&
+    (a.variant?.name ?? null) === (b.variant?.name ?? null) &&
+    (a.variant?.priceCents ?? null) ===
+      (b.variant?.priceCents ?? null) &&
     a.name === b.name &&
     a.priceCents === b.priceCents &&
     a.note === b.note &&
@@ -55,12 +66,16 @@ export function addToCart(
   product: Product,
   options: SelectedOption[] = [],
   note = '',
+  variant?: SelectedVariant,
 ): CartItem[] {
   return merge(items, {
     id: crypto.randomUUID(),
     productId: product.id,
-    name: product.name,
+    name: variant
+      ? `${product.name} — ${variant.name}`
+      : product.name,
     priceCents: product.priceCents,
+    ...(variant ? { variant: { ...variant } } : {}),
     options: [...options],
     note: note.trim(),
     quantity: 1,
@@ -89,6 +104,7 @@ export function editCartUnit(
   product: Product,
   options: SelectedOption[],
   note: string,
+  variant?: SelectedVariant,
 ): CartItem[] {
   const original = items.find(item => item.id === id)
 
@@ -103,7 +119,7 @@ export function editCartUnit(
     return [{ ...item, quantity: item.quantity - 1 }]
   })
 
-  return addToCart(remaining, product, options, note)
+  return addToCart(remaining, product, options, note, variant)
 }
 
 export type FreeItemInput = {
