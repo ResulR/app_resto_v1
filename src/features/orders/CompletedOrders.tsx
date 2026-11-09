@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
+import { groupCompletedOrders } from './orderArchivePolicy'
 import { TicketPreview } from './TicketPreview'
 import { listCompletedOrders } from './orderRepository'
 
@@ -17,10 +19,20 @@ function formatDate(date: string) {
 }
 
 export function CompletedOrders() {
+  const [section, setSection] =
+    useState<'recent' | 'archive'>('recent')
+
   const orders = useLiveQuery(
     () => listCompletedOrders(),
     [],
   )
+
+  const groups = orders
+    ? groupCompletedOrders(orders)
+    : { recent: [], archive: [] }
+
+  const visibleOrders =
+    section === 'recent' ? groups.recent : groups.archive
 
   return (
     <section
@@ -32,7 +44,7 @@ export function CompletedOrders() {
         <span>
           {orders === undefined
             ? 'Chargement...'
-            : `${orders.length} terminée(s)`}
+            : `${visibleOrders.length} commande(s) affichée(s)`}
         </span>
       </div>
 
@@ -40,14 +52,48 @@ export function CompletedOrders() {
         <p role="status">Chargement de l'historique...</p>
       )}
 
-      {orders?.length === 0 && (
+      {orders !== undefined && (
+        <>
+          <div
+            className="settings-tabs"
+            aria-label="Période de l'historique"
+          >
+            <button
+              type="button"
+              className={section === 'recent' ? 'active' : ''}
+              aria-pressed={section === 'recent'}
+              onClick={() => setSection('recent')}
+            >
+              30 derniers jours ({groups.recent.length})
+            </button>
+
+            <button
+              type="button"
+              className={section === 'archive' ? 'active' : ''}
+              aria-pressed={section === 'archive'}
+              onClick={() => setSection('archive')}
+            >
+              Archives ({groups.archive.length})
+            </button>
+          </div>
+
+          <p>
+            Les archives restent enregistrées sur cet
+            appareil. Aucune suppression automatique.
+          </p>
+        </>
+      )}
+
+      {orders !== undefined && visibleOrders.length === 0 && (
         <div className="empty-catalogue">
-          Aucune commande terminée.
+          {section === 'recent'
+            ? 'Aucune commande terminée sur les 30 derniers jours.'
+            : 'Aucune commande archivée.'}
         </div>
       )}
 
       <div className="completed-orders-list">
-        {orders?.map(order => (
+        {visibleOrders.map(order => (
           <article
             key={order.id}
             className="completed-order-card"
