@@ -166,5 +166,92 @@ export function createBackupRouter(pool: Pool): Router {
     }
   })
 
+
+  // Lecture seule : aucune restauration ni modification
+  // des données de caisse ne peut être déclenchée ici.
+  router.get('/snapshots/latest', async (request, response) => {
+    response.setHeader('Cache-Control', 'no-store')
+
+    const token = readSessionToken(request.headers.cookie)
+
+    if (!token) {
+      response.status(401).json({
+        error: 'Authentification requise.',
+      })
+      return
+    }
+
+    try {
+      const session = await pool.query(
+        `SELECT id FROM restaurant_sessions
+         WHERE token_hash = $1
+           AND expires_at > now()
+         LIMIT 1`,
+        [hashSessionToken(token)],
+      )
+
+      if (!session.rowCount) {
+        response.status(401).json({
+          error: 'Session invalide.',
+        })
+        return
+      }
+    } catch {
+      response.status(503).json({
+        error: 'Vérification de session indisponible.',
+      })
+      return
+    }
+
+    let backup
+
+    try {
+      const result = await pool.query(
+        `SELECT id, format_version, snapshot, created_at
+         FROM restaurant_backups
+         ORDER BY created_at DESC, id DESC
+         LIMIT 1`,
+      )
+
+      backup = result.rows[0]
+    } catch {
+      response.status(503).json({
+        error: 'Lecture des sauvegardes indisponible.',
+      })
+      return
+    }
+
+    if (!backup) {
+      response.status(404).json({
+        error: 'Aucune sauvegarde disponible.',
+      })
+      return
+    }
+
+    // Refuser les enregistrements incompatibles.
+    try {
+      const validated = validateBackup(backup.snapshot)
+
+      if (
+        backup.format_version !==
+        validated.snapshot.formatVersion
+      ) {
+        throw new Error('Version incohérente.')
+      }
+    } catch {
+      response.status(503).json({
+        error: 'Sauvegarde enregistrée invalide.',
+      })
+      return
+    }
+
+    response.json({
+      id: backup.id,
+      formatVersion: backup.format_version,
+      createdAt: backup.created_at,
+      snapshot: backup.snapshot,
+    })
+  })
+
   return router
 }
