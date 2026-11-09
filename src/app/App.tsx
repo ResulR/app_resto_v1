@@ -12,6 +12,7 @@ import { ProductManager } from '../features/catalogue/ProductManager'
 import { OptionManager } from '../features/catalogue/OptionManager'
 import { PrinterSettings } from '../features/printing/PrinterSettings'
 import { AdminAccount } from '../features/auth/AdminAccount'
+import { StatisticsPanel } from '../features/statistics/StatisticsPanel'
 import {
   ProductCustomizer,
   type SelectedOption,
@@ -48,7 +49,7 @@ import {
 import './RestaurantLayout.css'
 
 type Screen = 'orders' | 'settings'
-type SettingsTab = 'categories' | 'products' | 'options' | 'printing' | 'account'
+type SettingsTab = 'categories' | 'products' | 'options' | 'printing' | 'stats' | 'account'
 
 
 function formatPrice(cents: number) {
@@ -698,6 +699,16 @@ export default function App() {
             <button
               type="button"
               className={
+                settingsTab === 'stats' ? 'active' : ''
+              }
+              onClick={() => setSettingsTab('stats')}
+            >
+              Statistiques
+            </button>
+
+            <button
+              type="button"
+              className={
                 settingsTab === 'account' ? 'active' : ''
               }
               onClick={() => setSettingsTab('account')}
@@ -714,6 +725,8 @@ export default function App() {
             <OptionManager />
           ) : settingsTab === 'printing' ? (
             <PrinterSettings />
+          ) : settingsTab === 'stats' ? (
+            <StatisticsPanel />
           ) : (
             <AdminAccount />
           )}
