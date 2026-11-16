@@ -1,6 +1,7 @@
-export const SNAPSHOT_VERSION = 1
+export const SNAPSHOT_VERSION = 2
+export const LEGACY_SNAPSHOT_VERSION = 1
 
-export const SNAPSHOT_TABLES = [
+export const LEGACY_SNAPSHOT_TABLES = [
   'categories',
   'products',
   'variants',
@@ -11,6 +12,16 @@ export const SNAPSHOT_TABLES = [
   'orders',
   'settings',
 ] as const
+
+export const SNAPSHOT_TABLES = [
+  ...LEGACY_SNAPSHOT_TABLES,
+  'salesValuations',
+  'payments',
+  'paymentAllocations',
+  'taxConfigurations',
+] as const
+
+export type LegacySnapshotTableName = (typeof LEGACY_SNAPSHOT_TABLES)[number]
 
 export type SnapshotTableName =
   (typeof SNAPSHOT_TABLES)[number]
@@ -25,7 +36,7 @@ export type SnapshotTables = Record<
 export interface RestaurantSnapshot {
   formatVersion: number
   capturedAt: string
-  tables: SnapshotTables
+  tables: SnapshotTables | Record<LegacySnapshotTableName, SnapshotRow[]>
 }
 
 // Limite initiale de validation locale.
@@ -49,7 +60,7 @@ export function validateSnapshot(
     throw new Error('Sauvegarde invalide.')
   }
 
-  if (value.formatVersion !== SNAPSHOT_VERSION) {
+  if (value.formatVersion !== SNAPSHOT_VERSION && value.formatVersion !== LEGACY_SNAPSHOT_VERSION) {
     throw new Error('Version de sauvegarde incompatible.')
   }
 
@@ -65,7 +76,9 @@ export function validateSnapshot(
   }
 
   const actualNames = Object.keys(value.tables).sort()
-  const expectedNames = [...SNAPSHOT_TABLES].sort()
+  const expectedTables = value.formatVersion === LEGACY_SNAPSHOT_VERSION
+    ? LEGACY_SNAPSHOT_TABLES : SNAPSHOT_TABLES
+  const expectedNames = [...expectedTables].sort()
 
   if (
     JSON.stringify(actualNames) !==
@@ -74,8 +87,8 @@ export function validateSnapshot(
     throw new Error('Liste des tables incohérente.')
   }
 
-  for (const tableName of SNAPSHOT_TABLES) {
-    const rows = value.tables[tableName]
+  for (const tableName of expectedTables) {
+    const rows = (value.tables as Record<string, unknown>)[tableName]
 
     if (!Array.isArray(rows)) {
       throw new Error(
@@ -113,6 +126,48 @@ export function validateSnapshot(
       }
 
       identifiers.add(identifier)
+    }
+  }
+
+  if (value.formatVersion === SNAPSHOT_VERSION) {
+    const tabs = value.tables as Record<string, SnapshotRow[]>
+    const orderIds = new Set(tabs.orders.map(row => row.id))
+    const paymentIds = new Set(tabs.payments.map(row => row.id))
+    const positive = (n: unknown): n is number =>
+      typeof n === 'number' && Number.isSafeInteger(n) && n > 0
+    for (const row of tabs.salesValuations) {
+      if (!orderIds.has(row.orderId) || !['draft', 'locked'].includes(String(row.status)) ||
+          !Array.isArray(row.lines) ||
+          (row.totalTtcCents !== undefined &&
+           (typeof row.totalTtcCents !== 'number' || !Number.isSafeInteger(row.totalTtcCents) || row.totalTtcCents < 0))) {
+        throw new Error('Valorisation de vente invalide.')
+      }
+    }
+    for (const row of tabs.payments) {
+      if (!positive(row.amountCents) || !['cash', 'card'].includes(String(row.method)) ||
+          typeof row.createdAt !== 'string' || !Number.isFinite(Date.parse(row.createdAt))) {
+        throw new Error('Paiement invalide.')
+      }
+    }
+    const allocationsByPayment = new Map<string, number>()
+    for (const row of tabs.paymentAllocations) {
+      if (!paymentIds.has(row.paymentId) || !orderIds.has(row.orderId) || !positive(row.amountCents)) {
+        throw new Error('Allocation invalide.')
+      }
+      allocationsByPayment.set(String(row.paymentId), (allocationsByPayment.get(String(row.paymentId)) ?? 0) + Number(row.amountCents))
+    }
+    for (const row of tabs.payments) {
+      if ((allocationsByPayment.get(String(row.id)) ?? 0) !== row.amountCents) {
+        throw new Error('Somme des allocations incohérente.')
+      }
+    }
+    for (const row of tabs.taxConfigurations) {
+      if (typeof row.productId !== 'string' || !row.productId ||
+          !['sur_place', 'emporter'].includes(String(row.consumptionMode)) ||
+          typeof row.rateBasisPoints !== 'number' || !Number.isSafeInteger(row.rateBasisPoints) ||
+          row.rateBasisPoints < 0 || row.rateBasisPoints > 10000) {
+        throw new Error('Configuration TVA invalide.')
+      }
     }
   }
 

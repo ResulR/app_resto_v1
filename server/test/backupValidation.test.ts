@@ -11,7 +11,7 @@ import {
 
 function snapshot() {
   return {
-    formatVersion: 1,
+    formatVersion: 2,
     capturedAt: '2026-11-09T10:00:00.000Z',
     tables: Object.fromEntries(
       BACKUP_TABLES.map(name => [name, []]),
@@ -32,8 +32,8 @@ function order() {
   }
 }
 
-test('les neuf tables sont requises', () => {
-  assert.equal(BACKUP_TABLES.length, 9)
+test('les treize tables sont requises', () => {
+  assert.equal(BACKUP_TABLES.length, 13)
 
   const value = snapshot()
 
@@ -175,6 +175,22 @@ test('limite de taille appliquée', () => {
 test('instantané vide accepté', () => {
   const result = validateBackup(snapshot())
 
-  assert.equal(result.snapshot.formatVersion, 1)
+  assert.equal(result.snapshot.formatVersion, 2)
   assert.match(result.sha256, /^[0-9a-f]{64}$/)
+})
+
+
+test('ancienne sauvegarde V1 avec neuf tables acceptée', () => {
+  const value = snapshot()
+  value.formatVersion = 1
+  for (const name of ['salesValuations', 'payments', 'paymentAllocations', 'taxConfigurations']) {
+    delete value.tables[name]
+  }
+  assert.doesNotThrow(() => validateBackup(value))
+})
+
+test('V2 refuse paiement non alloué', () => {
+  const value = snapshot()
+  value.tables.payments.push({ id: 'p1', method: 'cash', createdAt: '2026-11-16T20:00:00.000Z', amountCents: 100 })
+  assert.throws(() => validateBackup(value), /allocations incohérente/)
 })

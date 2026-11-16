@@ -50,3 +50,47 @@ export interface DraftOrder {
   updatedAt: string
   payload: unknown
 }
+
+// C1 : écritures de caisse distinctes des commandes validées.
+// Aucun montant absent n'est interprété comme zéro.
+export type CashConsumptionMode = 'sur_place' | 'emporter'
+export type PaymentMethod = 'cash' | 'card'
+
+export interface SaleValuation {
+  id: string
+  orderId: string
+  createdAt: string
+  // En C2/C3, les ventilations seront figées avant tout encaissement.
+  status: 'draft' | 'locked'
+  totalTtcCents?: number
+  consumptionMode?: CashConsumptionMode
+  lines: unknown[]
+}
+
+export interface Payment {
+  id: string
+  createdAt: string
+  method: PaymentMethod
+  // Montant effectivement attribué aux ventes, hors monnaie rendue.
+  amountCents: number
+  receivedCents?: number
+  changeCents?: number
+  // Confirmation manuelle obligatoire pour les règlements par carte (C4).
+  cardConfirmed?: boolean
+}
+
+export interface PaymentAllocation {
+  id: string
+  paymentId: string
+  orderId: string
+  amountCents: number
+}
+
+export interface TaxConfiguration {
+  id: string
+  productId: string
+  consumptionMode: CashConsumptionMode
+  // Exprimé en points de base : 600 = 6 %, 1200 = 12 %.
+  rateBasisPoints: number
+  updatedAt: string
+}

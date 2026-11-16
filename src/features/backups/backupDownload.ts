@@ -1,5 +1,6 @@
 import {
   SNAPSHOT_VERSION,
+  LEGACY_SNAPSHOT_VERSION,
   validateSnapshot,
   type RestaurantSnapshot,
 } from './snapshotFormat'
@@ -66,7 +67,10 @@ export async function downloadLatestBackup(
     typeof backup.id !== 'string' ||
     !/^[a-f0-9]{8}(-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i
       .test(backup.id) ||
-    backup.formatVersion !== SNAPSHOT_VERSION ||
+    (
+      backup.formatVersion !== SNAPSHOT_VERSION &&
+      backup.formatVersion !== LEGACY_SNAPSHOT_VERSION
+    ) ||
     typeof backup.sha256 !== 'string' ||
     !/^[a-f0-9]{64}$/.test(backup.sha256) ||
     typeof backup.createdAt !== 'string' ||
@@ -76,6 +80,12 @@ export async function downloadLatestBackup(
   }
 
   validateSnapshot(backup.snapshot)
+
+  if (backup.snapshot.formatVersion !== backup.formatVersion) {
+    throw new Error(
+      'Versions de sauvegarde incohérentes.',
+    )
+  }
 
   const encoded = new TextEncoder().encode(
     JSON.stringify(backup.snapshot),

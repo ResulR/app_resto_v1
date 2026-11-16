@@ -8,6 +8,10 @@ import type {
   ProductOptionGroup,
   ProductOption,
   DraftOrder,
+  SaleValuation,
+  Payment,
+  PaymentAllocation,
+  TaxConfiguration,
 } from './models'
 
 export class RestaurantDatabase extends Dexie {
@@ -19,6 +23,10 @@ export class RestaurantDatabase extends Dexie {
   options!: Table<ProductOption, string>
   drafts!: Table<DraftOrder, string>
   settings!: Table<{ key: string; value: string }, string>
+  salesValuations!: Table<SaleValuation, string>
+  payments!: Table<Payment, string>
+  paymentAllocations!: Table<PaymentAllocation, string>
+  taxConfigurations!: Table<TaxConfiguration, string>
 
   constructor() {
     super('restaurant-pwa')
@@ -40,6 +48,14 @@ export class RestaurantDatabase extends Dexie {
 
     this.version(3).stores({
       settings: 'key',
+    })
+
+    // C1 : ajout de tables uniquement ; aucun changement des commandes.
+    this.version(4).stores({
+      salesValuations: 'id, orderId, createdAt, status',
+      payments: 'id, createdAt, method',
+      paymentAllocations: 'id, paymentId, orderId, [paymentId+orderId]',
+      taxConfigurations: 'id, productId, consumptionMode, [productId+consumptionMode]',
     })
   }
 }

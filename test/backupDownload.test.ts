@@ -6,7 +6,7 @@ import {
   downloadLatestBackup,
 } from '../src/features/backups/backupDownload'
 import {
-  SNAPSHOT_TABLES,
+  LEGACY_SNAPSHOT_TABLES,
 } from '../src/features/backups/snapshotFormat'
 
 function fixture() {
@@ -14,7 +14,7 @@ function fixture() {
     formatVersion: 1,
     capturedAt: '2026-11-09T16:39:41.000Z',
     tables: Object.fromEntries(
-      SNAPSHOT_TABLES.map(name => [name, []]),
+      LEGACY_SNAPSHOT_TABLES.map(name => [name, []]),
     ),
   }
 

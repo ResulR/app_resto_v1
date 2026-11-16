@@ -36,6 +36,14 @@ function snapshot(): RestaurantSnapshot {
   ) as RestaurantSnapshot['tables']
 
   for (const name of SNAPSHOT_TABLES) {
+    if ([
+      'salesValuations',
+      'payments',
+      'paymentAllocations',
+      'taxConfigurations',
+    ].includes(name)) {
+      continue
+    }
     if (name === 'settings') {
       tables.settings = [{
         key: 'restore-test',
@@ -71,12 +79,15 @@ test('restauration atomique sur base vierge', async () => {
 
   assert.deepEqual(result, {
     status: 'restored',
-    rowCount: SNAPSHOT_TABLES.length,
+    rowCount: SNAPSHOT_TABLES.length - 4,
   })
 
   assert.deepEqual(
     await counts(),
-    SNAPSHOT_TABLES.map(() => 1),
+    SNAPSHOT_TABLES.map(name => [
+      'salesValuations', 'payments',
+      'paymentAllocations', 'taxConfigurations',
+    ].includes(name) ? 0 : 1),
   )
 
   const saved = await db.settings.get('restore-test')

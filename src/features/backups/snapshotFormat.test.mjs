@@ -36,8 +36,8 @@ function validSnapshot() {
   }
 }
 
-test('les neuf tables sont couvertes', () => {
-  assert.equal(SNAPSHOT_TABLES.length, 9)
+test('les treize tables sont couvertes', () => {
+  assert.equal(SNAPSHOT_TABLES.length, 13)
 
   assert.ok(SNAPSHOT_TABLES.includes('orders'))
   assert.ok(SNAPSHOT_TABLES.includes('drafts'))
@@ -153,4 +153,20 @@ test('sauvegarde trop volumineuse refusée', () => {
     () => validateSnapshot(snapshot),
     /volumineuse/,
   )
+})
+
+
+test('ancien snapshot V1 de neuf tables toujours lisible', () => {
+  const value = validSnapshot()
+  value.formatVersion = 1
+  for (const name of ['salesValuations', 'payments', 'paymentAllocations', 'taxConfigurations']) {
+    delete value.tables[name]
+  }
+  assert.doesNotThrow(() => validateSnapshot(value))
+})
+
+test('snapshot V2 refuse allocation orpheline', () => {
+  const value = validSnapshot()
+  value.tables.paymentAllocations.push({ id: 'a1', paymentId: 'missing', orderId: 'missing', amountCents: 200 })
+  assert.throws(() => validateSnapshot(value), /Allocation invalide/)
 })

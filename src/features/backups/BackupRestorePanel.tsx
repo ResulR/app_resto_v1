@@ -134,7 +134,7 @@ export function BackupRestorePanel() {
   const counts = backup
     ? SNAPSHOT_TABLES.map(name => ({
         name,
-        count: backup.snapshot.tables[name].length,
+        count: (backup.snapshot.tables as Partial<Record<typeof name, unknown[]>>)[name]?.length ?? 0,
       }))
     : []
 

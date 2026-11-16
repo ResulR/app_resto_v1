@@ -1,10 +1,11 @@
 import { createHash } from 'node:crypto'
 
-export const BACKUP_FORMAT_VERSION = 1
+export const BACKUP_FORMAT_VERSION = 2
+export const LEGACY_BACKUP_FORMAT_VERSION = 1
 export const MAX_BACKUP_BYTES = 4 * 1024 * 1024
 export const MAX_ROWS_PER_TABLE = 20000
 
-export const BACKUP_TABLES = [
+export const LEGACY_BACKUP_TABLES = [
   'categories',
   'products',
   'variants',
@@ -14,6 +15,14 @@ export const BACKUP_TABLES = [
   'drafts',
   'orders',
   'settings',
+] as const
+
+export const BACKUP_TABLES = [
+  ...LEGACY_BACKUP_TABLES,
+  'salesValuations',
+  'payments',
+  'paymentAllocations',
+  'taxConfigurations',
 ] as const
 
 export interface ValidatedBackup {
@@ -86,7 +95,7 @@ export function validateBackup(
     return reject('Structure principale invalide.')
   }
 
-  if (input.formatVersion !== BACKUP_FORMAT_VERSION) {
+  if (input.formatVersion !== BACKUP_FORMAT_VERSION && input.formatVersion !== LEGACY_BACKUP_FORMAT_VERSION) {
     return reject('Version de sauvegarde incompatible.')
   }
 
@@ -110,11 +119,14 @@ export function validateBackup(
     return reject('Tables de sauvegarde invalides.')
   }
 
-  if (!hasExactKeys(input.tables, BACKUP_TABLES)) {
+  const expectedTables = input.formatVersion === LEGACY_BACKUP_FORMAT_VERSION
+    ? LEGACY_BACKUP_TABLES : BACKUP_TABLES
+
+  if (!hasExactKeys(input.tables, expectedTables)) {
     return reject('Liste des tables invalide.')
   }
 
-  for (const table of BACKUP_TABLES) {
+  for (const table of expectedTables) {
     const rows = input.tables[table]
 
     if (!Array.isArray(rows)) {
@@ -196,6 +208,48 @@ export function validateBackup(
 
     if (typeof order.totalComplete !== 'boolean') {
       return reject('Indicateur de total invalide.')
+    }
+  }
+
+  if (input.formatVersion === BACKUP_FORMAT_VERSION) {
+    const tables = input.tables as Record<string, Record<string, unknown>[]>
+    const orderIds = new Set(tables.orders.map(row => row.id))
+    const paymentIds = new Set(tables.payments.map(row => row.id))
+    const positive = (n: unknown): n is number =>
+      typeof n === 'number' && Number.isSafeInteger(n) && n > 0
+    for (const row of tables.salesValuations) {
+      if (!orderIds.has(row.orderId) || !['draft','locked'].includes(String(row.status)) ||
+          !Array.isArray(row.lines) ||
+          (row.totalTtcCents !== undefined &&
+           (typeof row.totalTtcCents !== 'number' || !Number.isSafeInteger(row.totalTtcCents) || row.totalTtcCents < 0))) {
+        return reject('Valorisation de vente invalide.')
+      }
+    }
+    for (const row of tables.payments) {
+      if (!positive(row.amountCents) || !['cash','card'].includes(String(row.method)) ||
+          typeof row.createdAt !== 'string' || !Number.isFinite(Date.parse(row.createdAt))) {
+        return reject('Paiement invalide.')
+      }
+    }
+    const allocated = new Map<string, number>()
+    for (const row of tables.paymentAllocations) {
+      if (!paymentIds.has(row.paymentId) || !orderIds.has(row.orderId) || !positive(row.amountCents)) {
+        return reject('Allocation invalide.')
+      }
+      allocated.set(String(row.paymentId), (allocated.get(String(row.paymentId)) ?? 0) + Number(row.amountCents))
+    }
+    for (const row of tables.payments) {
+      if ((allocated.get(String(row.id)) ?? 0) !== row.amountCents) {
+        return reject('Somme des allocations incohérente.')
+      }
+    }
+    for (const row of tables.taxConfigurations) {
+      if (typeof row.productId !== 'string' || !row.productId ||
+          !['sur_place','emporter'].includes(String(row.consumptionMode)) ||
+          typeof row.rateBasisPoints !== 'number' || !Number.isSafeInteger(row.rateBasisPoints) ||
+          row.rateBasisPoints < 0 || row.rateBasisPoints > 10000) {
+        return reject('Configuration TVA invalide.')
+      }
     }
   }
 

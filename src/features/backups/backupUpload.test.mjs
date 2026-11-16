@@ -47,7 +47,7 @@ const {
 
 function snapshot() {
   return {
-    formatVersion: 1,
+    formatVersion: format.SNAPSHOT_VERSION,
     capturedAt: '2026-11-09T10:00:00.000Z',
     tables: Object.fromEntries(
       format.SNAPSHOT_TABLES.map(name => [name, []]),

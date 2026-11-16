@@ -2,9 +2,10 @@ import { db } from '../../shared/database/db'
 
 import {
   SNAPSHOT_TABLES,
+  LEGACY_SNAPSHOT_TABLES,
+  LEGACY_SNAPSHOT_VERSION,
   validateSnapshot,
   type RestaurantSnapshot,
-  type SnapshotTableName,
 } from './snapshotFormat'
 
 import {
@@ -84,6 +85,8 @@ export async function restoreToEmptyDatabase(
       const tables = SNAPSHOT_TABLES.map(
         name => db.table(name),
       )
+      const sourceTables = safeSnapshot.formatVersion === LEGACY_SNAPSHOT_VERSION
+        ? LEGACY_SNAPSHOT_TABLES : SNAPSHOT_TABLES
 
       let restoredRows = 0
 
@@ -116,11 +119,9 @@ export async function restoreToEmptyDatabase(
             )
           }
 
-          for (const name of SNAPSHOT_TABLES) {
+          for (const name of sourceTables) {
             const rows =
-              safeSnapshot.tables[
-                name as SnapshotTableName
-              ]
+              (safeSnapshot.tables as Record<string, Record<string, unknown>[]>)[name]
 
             if (rows.length === 0) {
               continue
