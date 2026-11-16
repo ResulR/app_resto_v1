@@ -1,6 +1,5 @@
 import { Router } from 'express'
 import type { Pool } from 'pg'
-import { createHash } from 'node:crypto'
 
 import { hashSessionToken } from './auth.js'
 import {
@@ -8,7 +7,6 @@ import {
   validateBackup,
 } from './backupValidation.js'
 
-const COOKIE = 'restaurant_session'
 
 function readSessionToken(
   header: string | undefined,

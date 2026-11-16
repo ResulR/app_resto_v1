@@ -121,6 +121,10 @@ export function AccessGate({
   }, [])
 
   useEffect(() => {
+    // Vérification initiale indispensable avant d'ouvrir la caisse.
+    // L'état initial est déjà 'checking'. Conserver la logique
+    // d'annulation et de révocation existante.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void verifyAccess()
 
     const onAuthChanged = () => {
