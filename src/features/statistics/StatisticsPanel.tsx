@@ -3,6 +3,9 @@ import { useLiveQuery } from 'dexie-react-hooks'
 
 import { db } from '../../shared/database/db'
 import type { ConfirmedOrder } from '../orders/orderRepository'
+import {
+  calculateFinancialStats,
+} from './financialStats'
 
 import {
   calculateRestaurantStats,
@@ -31,12 +34,19 @@ export function StatisticsPanel() {
 
   // Les commandes proviennent exclusivement du stockage
   // local. La page fonctionne donc sans connexion réseau.
-  const orders = useLiveQuery(
-    () => db.table<ConfirmedOrder, string>('orders').toArray(),
-    [],
-  )
+  const financialData = useLiveQuery(async () => {
+    const [orders, sales, payments, allocations] =
+      await Promise.all([
+        db.table<ConfirmedOrder, string>('orders').toArray(),
+        db.salesValuations.toArray(),
+        db.payments.toArray(),
+        db.paymentAllocations.toArray(),
+      ])
 
-  if (orders === undefined) {
+    return { orders, sales, payments, allocations }
+  }, [])
+
+  if (financialData === undefined) {
     return (
       <section className="admin-account">
         <p role="status">Chargement des statistiques...</p>
@@ -45,9 +55,26 @@ export function StatisticsPanel() {
   }
 
   const stats = calculateRestaurantStats(
-    orders,
+    financialData.orders,
     period,
   )
+
+  let financial
+  let financialError = ''
+
+  try {
+    financial = calculateFinancialStats(
+      financialData.orders,
+      financialData.sales,
+      financialData.payments,
+      financialData.allocations,
+      period,
+    )
+  } catch (cause) {
+    financialError = cause instanceof Error
+      ? cause.message
+      : 'Statistiques financières indisponibles.'
+  }
 
   return (
     <section className="admin-account">
@@ -124,6 +151,66 @@ export function StatisticsPanel() {
             Le montant affiché ne représente pas
             leur valeur totale.
           </p>
+        )}
+      </div>
+
+      <div className="admin-account-card">
+        <h2>Bilan financier V2</h2>
+
+        {financialError && (
+          <p role="alert" className="admin-account-warning">
+            {financialError}
+          </p>
+        )}
+
+        {financial && (
+          <>
+            <p>
+              Ventes valorisées TTC :{' '}
+              <strong>{formatMoney(financial.salesTtcCents)}</strong>
+            </p>
+            <p>
+              Total HT :{' '}
+              <strong>{formatMoney(financial.salesHtCents)}</strong>
+            </p>
+            <p>
+              TVA calculée :{' '}
+              <strong>{formatMoney(financial.salesVatCents)}</strong>
+            </p>
+            <p>
+              Encaissements espèces :{' '}
+              <strong>{formatMoney(financial.cashReceivedCents)}</strong>
+            </p>
+            <p>
+              Encaissements carte confirmés :{' '}
+              <strong>{formatMoney(financial.cardReceivedCents)}</strong>
+            </p>
+            <p>
+              Total encaissé :{' '}
+              <strong>{formatMoney(financial.receivedCents)}</strong>
+            </p>
+            <p>
+              Solde actuellement dû sur les ventes de la période :{' '}
+              <strong>{formatMoney(financial.outstandingCents)}</strong>
+            </p>
+            <p>
+              {financial.fullyPaidCount} payée(s),{' '}
+              {financial.partiallyPaidCount} partiellement payée(s),{' '}
+              {financial.unpaidCount} impayée(s).
+            </p>
+            <p>
+              {financial.unvaluedOrdersCount} commande(s)
+              sans valorisation financière complète.
+            </p>
+            <p className="admin-account-info">
+              Ventes classées par date de commande.
+              Encaissements classés par date de paiement.
+              Les ventes préparées ne constituent pas
+              nécessairement du chiffre d'affaires fiscal.
+              Les impayés correspondent aux ventes de la
+              période, après prise en compte de tous leurs paiements.
+            </p>
+          </>
         )}
       </div>
 
