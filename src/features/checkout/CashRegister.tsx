@@ -22,6 +22,12 @@ import {
 import {
   recordMultiOrderPayment,
 } from './multiOrderPayment'
+import {
+  beginPaymentAttempt,
+  finishPaymentAttempt,
+  loadPendingPayment,
+  type PendingPaymentAttempt,
+} from './paymentAttempt'
 import './CashRegister.css'
 
 const money = (cents: number) =>
@@ -83,6 +89,15 @@ export function CashRegister() {
   const [dirty, setDirty] = useState(false)
   const [busy, setBusy] = useState(false)
   const busyRef = useRef(false)
+  const [pendingAttempt, setPendingAttempt] =
+    useState<PendingPaymentAttempt | null>(() => {
+      try {
+        return loadPendingPayment(window.localStorage)
+      } catch {
+        return null
+      }
+    })
+
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
 
@@ -302,25 +317,36 @@ export function CashRegister() {
         )
       }
 
+      // Cette vérification est également faite dans beginPaymentAttempt.
+      // Un ancien encaissement incertain interdit un nouvel UUID.
+      if (loadPendingPayment(window.localStorage)) {
+        throw new Error(
+          'Réconciliez le paiement précédent avant de continuer.',
+        )
+      }
+
       const cents = parseManualPrice(amount)
 
-      if (cents <= 0) {
-        throw new Error('Le paiement doit être positif.')
+      if (cents <= 0 || due <= 0) {
+        throw new Error('Montant à encaisser invalide.')
       }
 
-      if (due <= 0) {
-        throw new Error('Aucun montant restant à payer.')
-      }
-
-      const result = await recordMultiOrderPayment({
+      const attempt = beginPaymentAttempt(window.localStorage, {
         id: crypto.randomUUID(),
         orderIds: chosen.map(order => order.id),
         method,
         tenderedCents: cents,
-        ...(method === 'card'
-          ? { cardConfirmed }
-          : {}),
+        ...(method === 'card' ? { cardConfirmed } : {}),
       })
+
+      setPendingAttempt(attempt)
+
+      // Une réponse perdue ne supprime pas l'UUID.
+      // Le moteur reconnaîtra une répétition identique.
+      const result = await recordMultiOrderPayment(attempt)
+
+      finishPaymentAttempt(window.localStorage, attempt.id)
+      setPendingAttempt(null)
 
       setMessage(
         `Paiement enregistré : ${money(result.payment.amountCents)}` +
@@ -330,6 +356,31 @@ export function CashRegister() {
       )
       setAmount('')
       setCardConfirmed(false)
+    })
+  }
+
+  async function recoverPayment() {
+    await execute(async () => {
+      const attempt = loadPendingPayment(window.localStorage)
+
+      if (!attempt) {
+        setPendingAttempt(null)
+        throw new Error('Aucun paiement à réconcilier.')
+      }
+
+      // L'identifiant et les paramètres sont strictement conservés.
+      // Aucun nouveau paiement n'est créé si cette tentative
+      // avait déjà été enregistrée dans IndexedDB.
+      const result = await recordMultiOrderPayment(attempt)
+
+      finishPaymentAttempt(window.localStorage, attempt.id)
+      setPendingAttempt(null)
+      setAmount('')
+      setCardConfirmed(false)
+
+      setMessage(
+        `Paiement réconcilié : ${money(result.payment.amountCents)}`,
+      )
     })
   }
 
@@ -490,6 +541,28 @@ onChange={event =>
         )
       })}
 
+      {pendingAttempt && (
+        <div className="admin-account-card" role="status">
+          <h3>Paiement à réconcilier</h3>
+          <p>
+            Une tentative de {money(pendingAttempt.tenderedCents)}
+            {' '}est restée sans confirmation locale.
+            Ne demandez pas un second règlement au client.
+          </p>
+          <p>
+            Vérifiez le règlement effectué, puis récupérez
+            cette même tentative avec son identifiant initial.
+          </p>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void recoverPayment()}
+          >
+            Réconcilier la tentative
+          </button>
+        </div>
+      )}
+
       {chosen.length > 0 && (
         <div className="cash-payment">
           <button
@@ -548,6 +621,7 @@ onChange={event =>
             type="button"
             disabled={
               busy ||
+              pendingAttempt !== null ||
               !prepared ||
               dirty ||
               due <= 0 ||
