@@ -56,6 +56,16 @@ export interface DraftOrder {
 export type CashConsumptionMode = 'sur_place' | 'emporter'
 export type PaymentMethod = 'cash' | 'card'
 
+export interface SaleValuationLine {
+  itemId: string
+  productId: string
+  label: string
+  quantity: number
+  unitTtcCents?: number
+  lineTtcCents?: number
+  source: 'catalog' | 'manual' | 'missing'
+}
+
 export interface SaleValuation {
   id: string
   orderId: string
@@ -64,7 +74,7 @@ export interface SaleValuation {
   status: 'draft' | 'locked'
   totalTtcCents?: number
   consumptionMode?: CashConsumptionMode
-  lines: unknown[]
+  lines: SaleValuationLine[]
 }
 
 export interface Payment {
