@@ -76,15 +76,11 @@ async function capturePendingBackup():
   //
   // Les paramètres seuls ne prouvent pas qu'une
   // caisse possède un catalogue ou des commandes.
-  const containsRestaurantData = (
-    snapshot.tables.categories.length > 0 ||
-    snapshot.tables.products.length > 0 ||
-    snapshot.tables.variants.length > 0 ||
-    snapshot.tables.optionGroups.length > 0 ||
-    snapshot.tables.productOptionGroups.length > 0 ||
-    snapshot.tables.options.length > 0 ||
-    snapshot.tables.drafts.length > 0 ||
-    snapshot.tables.orders.length > 0
+  const containsRestaurantData = Object.entries(
+    snapshot.tables,
+  ).some(
+    ([name, rows]) =>
+      name !== 'settings' && rows.length > 0,
   )
 
   if (!containsRestaurantData) {

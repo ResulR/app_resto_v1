@@ -161,6 +161,49 @@ export function validateSnapshot(
         throw new Error('Somme des allocations incohérente.')
       }
     }
+    // C8 : une commande ne possède qu'une valorisation.
+    // Les sauvegardes historiques sans valorisation restent lisibles.
+    const valuationTotals = new Map<string, number | undefined>()
+
+    for (const row of tabs.salesValuations) {
+      const orderId = String(row.orderId)
+
+      if (valuationTotals.has(orderId)) {
+        throw new Error('Valorisations dupliquées pour une commande.')
+      }
+
+      valuationTotals.set(
+        orderId,
+        row.totalTtcCents === undefined
+          ? undefined
+          : Number(row.totalTtcCents),
+      )
+    }
+
+    // Une même commande ne peut pas recevoir plus que son
+    // total TTC figé, quelle que soit la répartition des paiements.
+    const allocationsByOrder = new Map<string, number>()
+
+    for (const row of tabs.paymentAllocations) {
+      const orderId = String(row.orderId)
+      const current = allocationsByOrder.get(orderId) ?? 0
+      const next = current + Number(row.amountCents)
+
+      if (!Number.isSafeInteger(next)) {
+        throw new Error('Total des allocations trop élevé.')
+      }
+
+      allocationsByOrder.set(orderId, next)
+    }
+
+    for (const [orderId, paid] of allocationsByOrder) {
+      const total = valuationTotals.get(orderId)
+
+      if (total !== undefined && paid > total) {
+        throw new Error('Commande surpayée dans la sauvegarde.')
+      }
+    }
+
     for (const row of tabs.taxConfigurations) {
       if (typeof row.productId !== 'string' || !row.productId ||
           !['sur_place', 'emporter'].includes(String(row.consumptionMode)) ||
