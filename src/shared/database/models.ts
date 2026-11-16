@@ -98,6 +98,8 @@ export interface Payment {
   changeCents?: number
   // Confirmation manuelle obligatoire pour les règlements par carte (C4).
   cardConfirmed?: boolean
+  // C5 : sélection originale conservée pour les réessais idempotents.
+  requestedOrderIds?: string[]
 }
 
 export interface PaymentAllocation {
