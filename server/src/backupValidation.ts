@@ -243,6 +243,51 @@ export function validateBackup(
         return reject('Somme des allocations incohérente.')
       }
     }
+    // C10 : cohérence financière entre commandes,
+    // valorisations et allocations de paiements.
+    const valuationsByOrder = new Map<
+      string,
+      Record<string, unknown>
+    >()
+
+    for (const row of tables.salesValuations) {
+      const orderId = String(row.orderId)
+
+      if (valuationsByOrder.has(orderId)) {
+        return reject('Valorisations dupliquées pour une commande.')
+      }
+
+      valuationsByOrder.set(orderId, row)
+    }
+
+    const paidByOrder = new Map<string, number>()
+
+    for (const row of tables.paymentAllocations) {
+      const orderId = String(row.orderId)
+      const previous = paidByOrder.get(orderId) ?? 0
+      const next = previous + Number(row.amountCents)
+
+      if (!Number.isSafeInteger(next)) {
+        return reject('Somme des allocations trop élevée.')
+      }
+
+      paidByOrder.set(orderId, next)
+    }
+
+    for (const [orderId, paid] of paidByOrder) {
+      const valuation = valuationsByOrder.get(orderId)
+
+      if (
+        !valuation ||
+        valuation.status !== 'locked' ||
+        typeof valuation.totalTtcCents !== 'number' ||
+        !Number.isSafeInteger(valuation.totalTtcCents) ||
+        paid > valuation.totalTtcCents
+      ) {
+        return reject('Paiement ou solde de vente incohérent.')
+      }
+    }
+
     for (const row of tables.taxConfigurations) {
       if (typeof row.productId !== 'string' || !row.productId ||
           !['sur_place','emporter'].includes(String(row.consumptionMode)) ||
