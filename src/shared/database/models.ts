@@ -64,6 +64,16 @@ export interface SaleValuationLine {
   unitTtcCents?: number
   lineTtcCents?: number
   source: 'catalog' | 'manual' | 'missing'
+  taxRateBasisPoints?: number
+  netCents?: number
+  taxCents?: number
+}
+
+export interface SaleTaxBreakdown {
+  rateBasisPoints: number
+  totalTtcCents: number
+  totalHtCents: number
+  taxCents: number
 }
 
 export interface SaleValuation {
@@ -75,6 +85,7 @@ export interface SaleValuation {
   totalTtcCents?: number
   consumptionMode?: CashConsumptionMode
   lines: SaleValuationLine[]
+  taxBreakdown?: SaleTaxBreakdown[]
 }
 
 export interface Payment {
