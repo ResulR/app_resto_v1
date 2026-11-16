@@ -166,8 +166,18 @@ export function StatisticsPanel() {
         {financial && (
           <>
             <p>
-              Ventes valorisées TTC :{' '}
+              Total des valorisations TTC :{' '}
               <strong>{formatMoney(financial.salesTtcCents)}</strong>
+            </p>
+            <p>
+              Préparées, encore modifiables :{' '}
+              <strong>{formatMoney(financial.draftValuationTtcCents)}</strong>
+              {' '}({financial.draftValuationCount})
+            </p>
+            <p>
+              Verrouillées après encaissement :{' '}
+              <strong>{formatMoney(financial.lockedValuationTtcCents)}</strong>
+              {' '}({financial.lockedValuationCount})
             </p>
             <p>
               Total HT :{' '}
@@ -205,8 +215,9 @@ export function StatisticsPanel() {
             <p className="admin-account-info">
               Ventes classées par date de commande.
               Encaissements classés par date de paiement.
-              Les ventes préparées ne constituent pas
-              nécessairement du chiffre d'affaires fiscal.
+              Les valorisations préparées restent provisoires.
+              Une valorisation verrouillée n'est pas, à elle seule,
+              une validation du chiffre d'affaires fiscal.
               Les impayés correspondent aux ventes de la
               période, après prise en compte de tous leurs paiements.
             </p>

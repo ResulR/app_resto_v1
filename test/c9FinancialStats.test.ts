@@ -207,3 +207,32 @@ test('C9 : aucun paiement ne signifie pas vente encaissée', () => {
   assert.equal(stats.outstandingCents, 300)
   assert.equal(stats.unpaidCount, 1)
 })
+
+test('C10 : distinguer valorisations provisoires et verrouillées', () => {
+  const draftOrder = order(
+    'draft-order',
+    '2026-11-16T12:00:00',
+  )
+  const draftSale: SaleValuation = {
+    ...sale('draft-sale', 'draft-order', 300, 270),
+    status: 'draft',
+  }
+
+  const stats = calculateFinancialStats(
+    [...orders, draftOrder],
+    [...sales, draftSale],
+    payments,
+    allocations,
+    'today',
+    now,
+  )
+
+  assert.equal(stats.valuedSalesCount, 3)
+  assert.equal(stats.salesTtcCents, 1500)
+  assert.equal(stats.draftValuationCount, 1)
+  assert.equal(stats.draftValuationTtcCents, 300)
+  assert.equal(stats.lockedValuationCount, 2)
+  assert.equal(stats.lockedValuationTtcCents, 1200)
+  assert.equal(stats.receivedCents, 1000)
+  assert.equal(stats.outstandingCents, 500)
+})

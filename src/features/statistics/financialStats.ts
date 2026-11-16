@@ -15,6 +15,10 @@ export type FinancialPeriod =
 
 export interface FinancialStats {
   valuedSalesCount: number
+  draftValuationCount: number
+  draftValuationTtcCents: number
+  lockedValuationCount: number
+  lockedValuationTtcCents: number
   unvaluedOrdersCount: number
   salesTtcCents: number
   salesHtCents: number
@@ -72,6 +76,10 @@ export function calculateFinancialStats(
 ): FinancialStats {
   const result: FinancialStats = {
     valuedSalesCount: 0,
+    draftValuationCount: 0,
+    draftValuationTtcCents: 0,
+    lockedValuationCount: 0,
+    lockedValuationTtcCents: 0,
     unvaluedOrdersCount: 0,
     salesTtcCents: 0,
     salesHtCents: 0,
@@ -220,6 +228,19 @@ export function calculateFinancialStats(
       throw new Error('Ventilation TVA incohérente.')
     }
 
+    if (sale.status === 'draft') {
+      if (paid !== 0) {
+        throw new Error('Paiement sur valorisation provisoire.')
+      }
+      result.draftValuationCount++
+      result.draftValuationTtcCents += sale.totalTtcCents
+    } else if (sale.status === 'locked') {
+      result.lockedValuationCount++
+      result.lockedValuationTtcCents += sale.totalTtcCents
+    } else {
+      throw new Error('Statut de valorisation invalide.')
+    }
+
     result.valuedSalesCount++
     result.salesTtcCents += sale.totalTtcCents
     result.salesHtCents += totalHt
@@ -237,6 +258,8 @@ export function calculateFinancialStats(
 
   for (const amount of [
     result.salesTtcCents,
+    result.draftValuationTtcCents,
+    result.lockedValuationTtcCents,
     result.salesHtCents,
     result.salesVatCents,
     result.cashReceivedCents,
