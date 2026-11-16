@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { TicketPreview } from './TicketPreview'
+import { CashRegister } from '../checkout/CashRegister'
 
 import {
   listActiveOrders,
@@ -85,6 +86,8 @@ export function ActiveOrders() {
           {error}
         </p>
       )}
+
+      <CashRegister />
 
       <div className="active-orders-list">
         {orders?.map(order => {

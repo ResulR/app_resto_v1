@@ -1,0 +1,109 @@
+.cash-register {
+  margin: 1.25rem 0;
+  padding: 1.25rem;
+  border: 1px solid #d4d9df;
+  border-radius: 16px;
+  background: #fff;
+  color: #17212b;
+}
+
+.cash-order-list {
+  display: grid;
+  gap: .6rem;
+  margin: 1rem 0;
+}
+
+.cash-order {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .75rem;
+  padding: .85rem;
+  border: 1px solid #ccd4dc;
+  border-radius: 10px;
+}
+
+.cash-order > strong {
+  margin-left: auto;
+}
+
+.cash-order input[type="checkbox"],
+.cash-confirm input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+}
+
+.cash-order-editor {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid #cbd5df;
+  border-radius: 12px;
+}
+
+.cash-order-editor legend {
+  font-weight: 700;
+}
+
+.cash-order-editor label,
+.cash-payment label {
+  display: grid;
+  gap: .35rem;
+  margin: .65rem 0;
+}
+
+.cash-line {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr));
+  align-items: center;
+  gap: .8rem;
+  margin: .5rem 0;
+  padding: .7rem 0;
+  border-bottom: 1px solid #e4e8ec;
+}
+
+.cash-register input:not([type="checkbox"]),
+.cash-register select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  padding: .6rem;
+  border: 1px solid #9caab7;
+  border-radius: 8px;
+  font: inherit;
+}
+
+.cash-payment {
+  display: grid;
+  gap: .6rem;
+  padding-top: 1rem;
+}
+
+.cash-register button {
+  min-height: 48px;
+  padding: .75rem 1rem;
+  border-radius: 10px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cash-register button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.cash-confirm {
+  display: flex !important;
+  flex-direction: row;
+  align-items: center;
+}
+
+@media (max-width: 760px) {
+  .cash-register {
+    padding: .75rem;
+  }
+
+  .cash-line {
+    grid-template-columns: 1fr;
+  }
+}
