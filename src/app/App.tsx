@@ -749,6 +749,31 @@ export default function App() {
       ) : (
         <div className="workspace">
           <div className="order-main-column">
+            <nav
+              className="service-shortcuts"
+              aria-label="Navigation rapide du restaurant"
+            >
+              {[
+                { label: 'Produits', target: '.catalogue-panel' },
+                { label: 'Commandes actives', target: '.active-orders' },
+                { label: 'Caisse', target: '.cash-register' },
+                { label: 'Historique', target: '.completed-orders' },
+              ].map(shortcut => (
+                <button
+                  key={shortcut.target}
+                  type="button"
+                  onClick={() => {
+                    document.querySelector(shortcut.target)
+                      ?.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start',
+                      })
+                  }}
+                >
+                  {shortcut.label}
+                </button>
+              ))}
+            </nav>
           {categories === undefined || products === undefined ? (
             <section className="catalogue-panel">
               <p role="status">Chargement du catalogue...</p>
