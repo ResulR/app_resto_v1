@@ -63,7 +63,7 @@ export function CustomerReceiptPreview({
 
     try {
       // Aucun accès IndexedDB ni appel réseau au clic.
-      printTicket(receipt.text)
+      printTicket(receipt.text, 'client')
 
       setMessage(
         'Dialogue d’impression demandé. ' +

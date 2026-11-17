@@ -1,4 +1,7 @@
-export function printTicket(text: string): void {
+export function printTicket(
+  text: string,
+  kind: 'preparation' | 'client' = 'preparation',
+): void {
   if (!text.trim()) {
     throw new Error('Ticket vide.')
   }
@@ -18,7 +21,7 @@ export function printTicket(text: string): void {
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<title>Ticket de préparation</title>
+<title>${kind === 'client' ? 'Ticket client' : 'Ticket de préparation'}</title>
 <style>
 @page { size: 80mm auto; margin: 3mm; }
 body { margin: 0; padding: 5mm; color: #000; }
