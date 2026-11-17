@@ -156,7 +156,7 @@ export function BackupRestorePanel() {
       </p>
 
       <p>
-        La restauration est autorisée uniquement si les neuf
+        La restauration est autorisée uniquement si les treize
         tables locales sont vides. Elle ne fusionne ni ne
         remplace les données déjà présentes.
       </p>
