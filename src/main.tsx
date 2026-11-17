@@ -1,3 +1,4 @@
+import { PwaUpdateNotice } from './features/pwa/PwaUpdateNotice'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './app/App'
@@ -9,5 +10,6 @@ ReactDOM.createRoot(
 ).render(
   <React.StrictMode>
     <AccessGate><App /></AccessGate>
+    <PwaUpdateNotice />
   </React.StrictMode>
 )
