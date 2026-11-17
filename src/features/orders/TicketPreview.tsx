@@ -5,6 +5,7 @@ import type { ConfirmedOrder } from './orderRepository'
 import { createPreparationTicket } from './ticket'
 import { getPrinterMode } from '../printing/printerRepository'
 import { printTicket } from '../printing/browserPrint'
+import { CustomerReceiptPreview } from '../printing/CustomerReceiptPreview'
 
 type Props = {
   order: ConfirmedOrder
@@ -80,6 +81,11 @@ export function TicketPreview({ order }: Props) {
 
       {message && <p role="status">{message}</p>}
       {error && <p role="alert">{error}</p>}
+
+      <CustomerReceiptPreview
+        orderId={order.id}
+        printerMode={printerMode}
+      />
     </section>
   )
 }
