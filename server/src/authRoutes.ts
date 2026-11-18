@@ -8,6 +8,13 @@ import {
   verifyPassword,
 } from './auth.js'
 
+import {
+  getAdminPasswordHash,
+  createSession,
+  sessionExists,
+  deleteSession,
+} from './authRepository.js'
+
 const COOKIE = 'restaurant_session'
 const SESSION_SECONDS = 30 * 24 * 60 * 60
 const attempts = new Map<string, {
@@ -96,13 +103,7 @@ export function createAuthRouter(pool: Pool): Router {
     }
 
     try {
-      const result = await pool.query<{
-        password_hash: string
-      }>(
-        'SELECT password_hash FROM restaurant_admin WHERE id = 1',
-      )
-
-      const stored = result.rows[0]?.password_hash
+      const stored = await getAdminPasswordHash(pool)
 
       const valid = stored
         ? await verifyPassword(password, stored)
@@ -122,11 +123,11 @@ export function createAuthRouter(pool: Pool): Router {
         Date.now() + SESSION_SECONDS * 1000,
       )
 
-      await pool.query(
-        `INSERT INTO restaurant_sessions
-         (id, admin_id, token_hash, expires_at)
-         VALUES ($1, 1, $2, $3)`,
-        [randomUUID(), hashSessionToken(token), expires],
+      await createSession(
+        pool,
+        randomUUID(),
+        hashSessionToken(token),
+        expires,
       )
 
       attempts.delete(ip)
@@ -149,15 +150,12 @@ export function createAuthRouter(pool: Pool): Router {
     }
 
     try {
-      const result = await pool.query(
-        `SELECT id FROM restaurant_sessions
-         WHERE token_hash = $1
-           AND expires_at > now()
-         LIMIT 1`,
-        [hashSessionToken(token)],
+      const exists = await sessionExists(
+        pool,
+        hashSessionToken(token),
       )
 
-      if (!result.rowCount) {
+      if (!exists) {
         response.status(401).json({ authenticated: false })
         return
       }
@@ -175,9 +173,9 @@ export function createAuthRouter(pool: Pool): Router {
 
     try {
       if (token) {
-        await pool.query(
-          'DELETE FROM restaurant_sessions WHERE token_hash = $1',
-          [hashSessionToken(token)],
+        await deleteSession(
+          pool,
+          hashSessionToken(token),
         )
       }
 
