@@ -190,3 +190,13 @@ export async function listProducts(): Promise<Product[]> {
 
   return products.filter(product => !product.archived)
 }
+
+export async function listAllProducts(): Promise<Product[]> {
+  return db.products.toArray()
+}
+
+export async function getProductById(
+  id: string,
+): Promise<Product | undefined> {
+  return db.products.get(id)
+}

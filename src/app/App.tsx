@@ -1,8 +1,12 @@
 import { useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 
-import { db } from '../shared/database/db'
 import type { Product } from '../shared/database/models'
+import { listCategories } from '../features/catalogue/categoryRepository'
+import {
+  listAllProducts,
+  getProductById,
+} from '../features/catalogue/productRepository'
 
 import { CategoryManager } from '../features/catalogue/CategoryManager'
 import { ProductManager } from '../features/catalogue/ProductManager'
@@ -86,12 +90,12 @@ export default function App() {
   const [orderError, setOrderError] = useState('')
 
   const categories = useLiveQuery(
-    () => db.categories.orderBy('position').toArray(),
+    () => listCategories(),
     [],
   )
 
   const products = useLiveQuery(
-    () => db.products.toArray(),
+    () => listAllProducts(),
     [],
   )
 
@@ -244,7 +248,7 @@ export default function App() {
     setOrderError('')
 
     try {
-      const original = await db.products.get(item.productId)
+      const original = await getProductById(item.productId)
 
       if (!original?.active || original.archived) {
         throw new Error(
@@ -267,7 +271,7 @@ export default function App() {
     setOrderError('')
 
     try {
-      const currentProduct = await db.products.get(product.id)
+      const currentProduct = await getProductById(product.id)
 
       if (!currentProduct?.active || currentProduct.archived) {
         throw new Error('Ce produit est indisponible ou retiré.')
