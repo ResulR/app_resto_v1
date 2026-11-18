@@ -3,6 +3,12 @@ import type { Pool } from 'pg'
 
 import { hashSessionToken } from './auth.js'
 import {
+  sessionExists,
+  insertSnapshot,
+  getLatestBackup,
+} from './backupRepository.js'
+
+import {
   BackupValidationError,
   validateBackup,
 } from './backupValidation.js'
@@ -65,15 +71,12 @@ export function createBackupRouter(pool: Pool): Router {
     }
 
     try {
-      const session = await pool.query(
-        `SELECT id FROM restaurant_sessions
-         WHERE token_hash = $1
-           AND expires_at > now()
-         LIMIT 1`,
-        [hashSessionToken(token)],
+      const exists = await sessionExists(
+        pool,
+        hashSessionToken(token),
       )
 
-      if (!session.rowCount) {
+      if (!exists) {
         response.status(401).json({
           error: 'Session invalide.',
         })
@@ -136,20 +139,12 @@ export function createBackupRouter(pool: Pool): Router {
     const id = backupId(validated.sha256)
 
     try {
-      const inserted = await pool.query(
-        `INSERT INTO restaurant_backups
-           (id, format_version, snapshot)
-         VALUES ($1, $2, $3::jsonb)
-         ON CONFLICT (id) DO NOTHING
-         RETURNING id`,
-        [
-          id,
-          validated.snapshot.formatVersion,
-          JSON.stringify(validated.snapshot),
-        ],
+      const created = await insertSnapshot(
+        pool,
+        id,
+        validated.snapshot.formatVersion,
+        JSON.stringify(validated.snapshot),
       )
-
-      const created = Boolean(inserted.rowCount)
 
       response.status(created ? 201 : 200).json({
         id,
@@ -180,15 +175,12 @@ export function createBackupRouter(pool: Pool): Router {
     }
 
     try {
-      const session = await pool.query(
-        `SELECT id FROM restaurant_sessions
-         WHERE token_hash = $1
-           AND expires_at > now()
-         LIMIT 1`,
-        [hashSessionToken(token)],
+      const exists = await sessionExists(
+        pool,
+        hashSessionToken(token),
       )
 
-      if (!session.rowCount) {
+      if (!exists) {
         response.status(401).json({
           error: 'Session invalide.',
         })
@@ -204,14 +196,7 @@ export function createBackupRouter(pool: Pool): Router {
     let backup
 
     try {
-      const result = await pool.query(
-        `SELECT id, format_version, snapshot, created_at
-         FROM restaurant_backups
-         ORDER BY created_at DESC, id DESC
-         LIMIT 1`,
-      )
-
-      backup = result.rows[0]
+      backup = await getLatestBackup(pool)
     } catch {
       response.status(503).json({
         error: 'Lecture des sauvegardes indisponible.',
