@@ -1,11 +1,11 @@
 import { useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { db } from '../../shared/database/db'
-import {
-  listActiveOrders,
-  listCompletedOrders,
-  type ConfirmedOrder,
+import type {
+  ConfirmedOrder,
 } from '../orders/orderRepository'
+import {
+  getCashRegisterData,
+} from './cashRegisterRepository'
 import type {
   CashConsumptionMode,
   SaleValuation,
@@ -47,37 +47,7 @@ function modeFor(
 }
 
 export function CashRegister() {
-  const data = useLiveQuery(async () => {
-    const [active, completed, sales, allocations, configs] =
-      await Promise.all([
-        listActiveOrders(),
-        listCompletedOrders(),
-        db.salesValuations.toArray(),
-        db.paymentAllocations.toArray(),
-        db.taxConfigurations.toArray(),
-      ])
-
-    const valuations = new Map(
-      sales.map(sale => [sale.orderId, sale]),
-    )
-    const paid = new Map<string, number>()
-
-    for (const allocation of allocations) {
-      paid.set(
-        allocation.orderId,
-        (paid.get(allocation.orderId) ?? 0) +
-          allocation.amountCents,
-      )
-    }
-
-    const orders = [...active, ...completed].filter(order => {
-      const total = valuations.get(order.id)?.totalTtcCents
-      return total === undefined ||
-        (paid.get(order.id) ?? 0) < total
-    })
-
-    return { orders, valuations, paid, configs }
-  }, [])
+  const data = useLiveQuery(getCashRegisterData, [])
 
   const [selected, setSelected] = useState<string[]>([])
   const [prices, setPrices] = useState<Record<string, string>>({})
