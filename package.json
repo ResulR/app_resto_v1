@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "typecheck": "tsc -b --pretty false",
+    "test": "node --import tsx --test test/*.test.ts src/features/orders/*.test.mjs src/features/printing/*.test.mjs src/features/auth/*.test.mjs src/features/backups/*.test.mjs"
   },
   "dependencies": {
     "dexie": "^4.4.7",
