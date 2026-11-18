@@ -18,20 +18,20 @@ hors ligne de la prise de commandes.
 - Node.js 22.
 - Express et TypeScript.
 - Répertoire source : server/.
-- Écoute prévue : 127.0.0.1:4600.
+- Écoute prévue : 127.0.0.1:4601.
 - API dédiée exclusivement au restaurant.
 
 ## Base de données
 
 - PostgreSQL 17 existant.
-- Base dédiée prévue : restaurant_app.
-- Rôle dédié prévu : restaurant_app.
+- Base dédiée : restaurant_app.
+- Rôle dédié : restaurant_app.
 - Aucune permission sur les bases des autres projets.
 - Migrations propres au restaurant.
 
 ## Isolation système
 
-- Compte système dédié prévu : restaurant-app.
+- Service backend : restaurant-api.service.
 - Pas d'exécution de l'API en root.
 - Secrets hors du dépôt Git.
 - Permissions restrictives.
@@ -41,9 +41,8 @@ hors ligne de la prise de commandes.
 
 - Sources : /home/debian/restaurant-pwa.
 - Frontend : /var/www/restaurant-pwa.
-- Reverse proxy à configurer ultérieurement.
-- Aucun changement Nginx dans le point 7.1.
-- Aucun service créé dans le point 7.1.
+- Reverse proxy Nginx configuré pour /restaurant/.
+- Service backend : restaurant-api.service.
 
 ## Règles de sécurité
 
@@ -64,10 +63,10 @@ hors ligne de la prise de commandes.
 - Sauvegarde et restauration nécessitent une connexion.
 - Aucune synchronisation automatique implicite.
 
-## Étape suivante
+## État actuel
 
-Point 7.2 : développer l'API minimale et les migrations
-PostgreSQL dans un environnement isolé.
+Le backend dispose de routes d’authentification
+et de sauvegarde avec des repositories PostgreSQL.
 
-Les comptes système, la base réelle et le déploiement
-seront préparés séparément après contrôle des permissions.
+La prise de commandes et la caisse restent
+utilisables hors ligne grâce à IndexedDB.

@@ -1,75 +1,35 @@
-# React + TypeScript + Vite
+# Restaurant PWA
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Application privée de prise de commandes pour restaurant.
 
-Currently, two official plugins are available:
+## Architecture
+- Frontend : React, TypeScript, Vite.
+- Backend : Express, TypeScript, PostgreSQL.
+- Stockage opérationnel : IndexedDB / Dexie.
+- Fonctionnement offline-first.
+- Modules métier : src/features/.
+- Backend : server/src/.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Installation
+Frontend : npm ci
+Backend : cd server puis npm ci
 
-## React Compiler
+## Développement
+npm run dev
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Vérifications
+- Frontend : npm run lint et npm run build.
+- Backend : cd server puis npm run build et npm test.
+- Tests frontend : Node.js avec tsx et les suites du dépôt.
 
-## Expanding the ESLint configuration
+## Configuration backend
+Voir server/.env.example.
+Les secrets PostgreSQL restent hors du dépôt.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Déploiement
+- Application publiée sous /restaurant/.
+- Backend local derrière Nginx.
+- Aucun déploiement automatique après un build.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
-
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
+## Documentation
+Voir ARCHITECTURE_SERVEUR.md.
