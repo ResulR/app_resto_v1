@@ -107,3 +107,121 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* UI-06A : caisse sombre tactile */
+
+.cash-register {
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius);
+}
+
+.cash-register .products-heading > span {
+  color: var(--ui-text-muted);
+}
+
+.cash-order {
+  min-height: 72px;
+  background: var(--ui-surface-raised);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius);
+  cursor: pointer;
+}
+
+.cash-order:has(input:checked) {
+  border-color: var(--ui-primary);
+  background: #233f63;
+}
+
+.cash-order input[type="checkbox"],
+.cash-confirm input[type="checkbox"] {
+  width: 24px;
+  height: 24px;
+  accent-color: var(--ui-primary);
+}
+
+.cash-order-editor {
+  background: var(--ui-surface-raised);
+  border-color: var(--ui-border);
+  border-radius: var(--ui-radius);
+}
+
+.cash-line {
+  border-color: var(--ui-border);
+}
+
+.cash-register input:not([type="checkbox"]),
+.cash-register select {
+  min-height: var(--ui-touch-target);
+  background: var(--ui-bg);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-border);
+  border-radius: 10px;
+  font-size: 16px;
+}
+
+.cash-register button {
+  min-height: var(--ui-touch-target);
+  background: var(--ui-surface-raised);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-border);
+}
+
+.cash-register button:focus-visible,
+.cash-register input:focus-visible,
+.cash-register select:focus-visible {
+  outline: 3px solid var(--ui-primary);
+  outline-offset: 2px;
+}
+
+.cash-payment {
+  border-top: 1px solid var(--ui-border);
+}
+
+.cash-confirm {
+  min-height: var(--ui-touch-target);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cash-order {
+    transition: none;
+  }
+}
+
+/* UI-06B : actions de paiement */
+
+.cash-payment > button:first-of-type {
+  background: #233f63;
+  color: #bfdbfe;
+  border-color: var(--ui-primary);
+}
+
+.cash-payment > button:last-of-type {
+  min-height: 60px;
+  background: #167347;
+  color: #ffffff;
+  border-color: #167347;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.cash-payment > button:last-of-type:hover:not(:disabled) {
+  background: #105c38;
+}
+
+.cash-register .admin-account-card {
+  background: var(--ui-surface-raised);
+  color: var(--ui-text);
+  border-color: var(--ui-warning);
+}
+
+.cash-register .admin-account-card button {
+  border-color: var(--ui-warning);
+  color: var(--ui-warning);
+}
+
+.cash-register button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
