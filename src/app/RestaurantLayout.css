@@ -1,4 +1,18 @@
 :root {
+  /* UI-01 : thème sombre Restaurant V2 */
+  --ui-bg: #11151d;
+  --ui-surface: #1c2430;
+  --ui-surface-raised: #263141;
+  --ui-primary: #3b82f6;
+  --ui-text: #f6f8fc;
+  --ui-text-muted: #b5c0d0;
+  --ui-success: #34d399;
+  --ui-warning: #fbbf24;
+  --ui-danger: #f87171;
+  --ui-border: #394657;
+  --ui-radius: 14px;
+  --ui-touch-target: 48px;
+
   font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: #1c2936;
   background: #f6f7f9;
@@ -1993,4 +2007,302 @@ button:focus-visible {
     min-height: 48px;
     padding: 10px 14px;
   }
+}
+
+/* UI-01B : navigation sombre */
+
+.restaurant-app > .topbar {
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.topbar .brand-icon {
+  background: var(--ui-primary);
+  color: var(--ui-text);
+}
+
+.topbar .brand span {
+  color: var(--ui-text-muted);
+}
+
+.topbar .avatar {
+  background: var(--ui-surface-raised);
+  color: var(--ui-text);
+}
+
+.topbar .screen-button {
+  min-height: var(--ui-touch-target);
+  background: var(--ui-surface-raised);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-border);
+}
+
+.service-shortcuts {
+  background: var(--ui-bg);
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.service-shortcuts button {
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-border);
+}
+
+.service-shortcuts button:active {
+  background: var(--ui-surface-raised);
+}
+
+.topbar button:focus-visible,
+.service-shortcuts button:focus-visible {
+  outline: 3px solid var(--ui-primary);
+  outline-offset: 3px;
+}
+
+/* UI-01C : catalogue sombre */
+
+.restaurant-app .catalogue-panel {
+  background: var(--ui-bg);
+  color: var(--ui-text);
+}
+
+.catalogue-panel .eyebrow,
+.catalogue-panel .section-heading p,
+.catalogue-panel .products-heading > span,
+.catalogue-panel .catalogue-info {
+  color: var(--ui-text-muted);
+}
+
+.catalogue-panel .category-button {
+  min-height: var(--ui-touch-target);
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius);
+}
+
+.catalogue-panel .category-button.active {
+  background: var(--ui-primary);
+  color: #ffffff;
+  border-color: var(--ui-primary);
+}
+
+.catalogue-panel .product-card {
+  min-height: 190px;
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius);
+}
+
+.catalogue-panel .product-card.selected {
+  background: var(--ui-surface-raised);
+  border-color: var(--ui-primary);
+}
+
+.catalogue-panel .product-description {
+  color: var(--ui-text-muted);
+}
+
+.catalogue-panel .product-plus {
+  min-width: var(--ui-touch-target);
+  min-height: var(--ui-touch-target);
+  background: var(--ui-surface-raised);
+  color: var(--ui-primary);
+}
+
+.catalogue-panel .category-button:focus-visible,
+.catalogue-panel .product-card:focus-visible {
+  outline: 3px solid var(--ui-primary);
+  outline-offset: 3px;
+}
+
+/* UI-01D : panier sombre */
+
+.restaurant-app .order-panel {
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  border-left: 1px solid var(--ui-border);
+}
+
+.order-panel .order-subtitle,
+.order-panel .item-details span {
+  color: var(--ui-text-muted);
+}
+
+.order-panel .order-item,
+.order-panel .order-footer {
+  border-color: var(--ui-border);
+}
+
+.order-panel .order-footer {
+  background: var(--ui-surface);
+}
+
+.order-panel .item-quantity,
+.order-panel .order-count {
+  background: var(--ui-surface-raised);
+  color: var(--ui-text);
+}
+
+.order-panel .total-row,
+.order-panel .total-row strong {
+  color: var(--ui-text);
+}
+
+.order-panel .total-row strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.order-panel .finish-button {
+  min-height: var(--ui-touch-target);
+  background: var(--ui-primary);
+  color: #ffffff;
+}
+
+.order-panel .order-comment-field textarea {
+  background: var(--ui-surface-raised);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-border);
+}
+
+.order-panel .order-comment-field textarea::placeholder {
+  color: var(--ui-text-muted);
+}
+
+.order-panel .order-comment-field textarea:focus-visible {
+  outline: 3px solid var(--ui-primary);
+  outline-offset: 2px;
+}
+
+.order-panel .order-item-note {
+  color: var(--ui-text-muted) !important;
+}
+
+.order-panel .order-price-warning {
+  color: #fcd68d;
+  background: #47351c;
+  border: 1px solid #88632a;
+}
+
+.order-panel .partial-price-label {
+  color: #fcd68d;
+}
+
+/* UI-01F : controles tactiles sombres */
+
+.order-panel .cart-item-actions button {
+  min-width: var(--ui-touch-target);
+  min-height: var(--ui-touch-target);
+  background: var(--ui-surface-raised);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-border);
+}
+
+.order-panel .cart-item-actions > span {
+  color: var(--ui-text);
+}
+
+.order-panel .cart-item-actions .cart-edit-button {
+  color: #93c5fd;
+  border-color: var(--ui-primary);
+}
+
+.order-panel .consumption-mode legend {
+  color: var(--ui-text);
+}
+
+.order-panel .consumption-choice {
+  min-height: var(--ui-touch-target);
+  background: var(--ui-surface-raised);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-border);
+}
+
+.order-panel .consumption-choice.selected {
+  background: var(--ui-primary);
+  color: #ffffff;
+  border-color: var(--ui-primary);
+}
+
+.order-panel .cart-item-actions button:focus-visible,
+.order-panel .consumption-choice:focus-visible {
+  outline: 3px solid var(--ui-primary);
+  outline-offset: 3px;
+}
+
+.catalogue-panel .free-item-open {
+  min-height: var(--ui-touch-target);
+  background: var(--ui-surface-raised);
+  color: #93c5fd;
+  border: 1px solid var(--ui-primary);
+}
+
+.catalogue-panel .free-item-open:focus-visible {
+  outline: 3px solid var(--ui-primary);
+  outline-offset: 3px;
+}
+
+/* UI-01H : fenetres sombres */
+
+.customizer-overlay {
+  background: rgba(5, 9, 16, 0.78);
+}
+
+.customizer-dialog {
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-border);
+}
+
+.customizer-dialog .customizer-description,
+.customizer-dialog .confirmed-order-line span {
+  color: var(--ui-text-muted);
+}
+
+.customizer-dialog .customizer-group,
+.customizer-dialog .customizer-footer,
+.customizer-dialog .item-note-field,
+.customizer-dialog .confirmed-order-line {
+  border-color: var(--ui-border);
+}
+
+.customizer-dialog .customizer-option {
+  background: var(--ui-surface-raised);
+  border-color: var(--ui-border);
+}
+
+.customizer-dialog .customizer-option input {
+  accent-color: var(--ui-primary);
+}
+
+.customizer-dialog .customizer-header > button,
+.customizer-dialog .customizer-actions button,
+.customizer-dialog .customizer-cancel {
+  min-height: var(--ui-touch-target);
+  background: var(--ui-surface-raised);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-border);
+}
+
+.customizer-dialog .customizer-confirm {
+  min-height: var(--ui-touch-target);
+  background: var(--ui-primary);
+  color: #ffffff;
+}
+
+.customizer-dialog .item-note-field textarea,
+.customizer-dialog .free-item-form input,
+.customizer-dialog .free-item-form textarea {
+  background: var(--ui-surface-raised);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-border);
+}
+
+.customizer-dialog input:focus-visible,
+.customizer-dialog textarea:focus-visible,
+.customizer-dialog button:focus-visible,
+.customizer-dialog .customizer-option:focus-within {
+  outline: 3px solid var(--ui-primary);
+  outline-offset: 2px;
 }
