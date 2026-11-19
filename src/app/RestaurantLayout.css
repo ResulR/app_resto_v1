@@ -2842,3 +2842,25 @@ button:focus-visible {
   color: #fcd68d;
   border-bottom: 1px solid #88632a;
 }
+
+/* UI-11A : mise en page des rubriques */
+
+.section-workspace {
+  width: 100%;
+  max-width: 1440px;
+  min-width: 0;
+  margin: 0 auto;
+  padding: 28px;
+  color: var(--ui-text);
+}
+
+.section-workspace .statistics-panel {
+  width: 100%;
+  max-width: none;
+}
+
+@media (max-width: 700px) {
+  .section-workspace {
+    padding: 14px;
+  }
+}
