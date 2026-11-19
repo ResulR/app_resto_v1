@@ -34,6 +34,7 @@ export function OrderSummary({
 
   return (
     <aside
+      id="order-summary"
       className="order-panel"
       aria-label="Récapitulatif de commande"
     >

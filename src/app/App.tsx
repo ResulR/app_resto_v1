@@ -47,6 +47,7 @@ import {
 
 import { OrderCatalogue } from '../features/orders/OrderCatalogue'
 import { OrderSummary } from '../features/orders/OrderSummary'
+import { CartToggle } from '../features/orders/CartToggle'
 
 import {
   HomeDashboard,
@@ -81,6 +82,7 @@ export default function App() {
     useState<SettingsTab>('categories')
 
   const [items, setItems] = useState<CartItem[]>([])
+  const [cartOpen, setCartOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [activeDraftId, setActiveDraftId] =
     useState<string | null>(null)
@@ -450,7 +452,11 @@ export default function App() {
           )}
         </div>
       ) : (
-        <div className="workspace">
+        <div
+          className={`workspace ${
+            cartOpen ? 'cart-open' : 'cart-collapsed'
+          }`}
+        >
           <div className="order-main-column">
             <nav
               className="service-shortcuts"
@@ -473,6 +479,13 @@ export default function App() {
                 </button>
               ))}
             </nav>
+
+            <CartToggle
+              items={items}
+              open={cartOpen}
+              onToggle={() => setCartOpen(value => !value)}
+            />
+
           {categories === undefined || products === undefined ? (
             <section className="catalogue-panel">
               <p role="status">Chargement du catalogue...</p>

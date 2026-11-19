@@ -2306,3 +2306,58 @@ button:focus-visible {
   outline: 3px solid var(--ui-primary);
   outline-offset: 2px;
 }
+
+/* UI-03B : panier retractable */
+
+.workspace.cart-collapsed {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.workspace.cart-collapsed > .order-panel {
+  display: none;
+}
+
+.cart-toggle {
+  width: calc(100% - 48px);
+  min-height: 64px;
+  margin: 12px 24px 0;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: var(--ui-surface-raised);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-primary);
+  border-radius: var(--ui-radius);
+  font: inherit;
+  cursor: pointer;
+}
+
+.cart-toggle-title {
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.cart-toggle-amount {
+  color: var(--ui-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.cart-toggle:focus-visible {
+  outline: 3px solid var(--ui-primary);
+  outline-offset: 3px;
+}
+
+@media (max-width: 700px) {
+  .workspace.cart-open,
+  .workspace.cart-collapsed {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cart-toggle {
+    width: calc(100% - 28px);
+    margin: 10px 14px 0;
+  }
+}
