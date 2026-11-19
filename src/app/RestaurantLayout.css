@@ -2476,3 +2476,92 @@ button:focus-visible {
   outline: 3px solid var(--ui-primary);
   outline-offset: 3px;
 }
+
+/* UI-07A : historique sombre */
+
+.completed-orders {
+  color: var(--ui-text);
+}
+
+.completed-orders .products-heading > span,
+.completed-orders > p {
+  color: var(--ui-text-muted);
+}
+
+.completed-orders .settings-tabs button {
+  min-height: var(--ui-touch-target);
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  border-color: var(--ui-border);
+}
+
+.completed-orders .settings-tabs button.active {
+  background: var(--ui-primary);
+  border-color: var(--ui-primary);
+  color: #ffffff;
+}
+
+.completed-orders .empty-catalogue {
+  background: var(--ui-surface);
+  color: var(--ui-text-muted);
+  border-color: var(--ui-border);
+}
+
+.completed-orders-list {
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(100%, 320px), 1fr)
+  );
+  gap: 18px;
+}
+
+.completed-order-card {
+  padding: 22px;
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius);
+}
+
+.completed-order-identity strong {
+  font-size: 18px;
+}
+
+.completed-order-identity span,
+.completed-order-summary > span,
+.completed-order-item span,
+.completed-order-readonly {
+  color: var(--ui-text-muted);
+}
+
+.completed-order-status {
+  background: #233f63;
+  color: #bfdbfe;
+  border: 1px solid var(--ui-primary);
+  font-size: 12px;
+}
+
+.completed-order-summary strong {
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+}
+
+.completed-order-details,
+.completed-order-item {
+  border-color: var(--ui-border);
+}
+
+.completed-order-details summary {
+  min-height: var(--ui-touch-target);
+  color: #93c5fd;
+}
+
+.completed-order-item {
+  background: var(--ui-surface-raised);
+}
+
+.completed-orders button:focus-visible,
+.completed-orders summary:focus-visible {
+  outline: 3px solid var(--ui-primary);
+  outline-offset: 3px;
+}

@@ -130,6 +130,14 @@ export function CompletedOrders() {
                 )} article(s)
               </span>
 
+              <span>
+                {order.consumptionMode === 'sur_place'
+                  ? 'Sur place'
+                  : order.consumptionMode === 'emporter'
+                    ? 'À emporter'
+                    : 'Non précisé'}
+              </span>
+
               <strong>
                 {order.totalComplete
                   ? 'Total : '
