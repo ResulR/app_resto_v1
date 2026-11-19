@@ -2768,3 +2768,77 @@ button:focus-visible {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* UI-10A : authentification sombre */
+
+.restaurant-access-screen {
+  background: var(--ui-bg);
+  color: var(--ui-text);
+}
+
+.restaurant-access-card {
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius);
+}
+
+.restaurant-access-card .brand-icon {
+  background: var(--ui-primary);
+  color: #ffffff;
+}
+
+.restaurant-access-card input,
+.settings-workspace .admin-account-card input {
+  min-height: var(--ui-touch-target);
+  background: var(--ui-surface-raised);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-border);
+  font-size: 16px;
+}
+
+.restaurant-access-card button,
+.settings-workspace .admin-account-button {
+  min-height: var(--ui-touch-target);
+  background: var(--ui-primary);
+  color: #ffffff;
+  border: 1px solid var(--ui-primary);
+}
+
+.settings-workspace .admin-account {
+  color: var(--ui-text);
+}
+
+.settings-workspace .admin-account-card {
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius);
+}
+
+.settings-workspace .admin-account-info {
+  color: var(--ui-text-muted);
+}
+
+.settings-workspace .admin-account-success {
+  color: var(--ui-success);
+}
+
+.settings-workspace .admin-account-warning,
+.settings-workspace .admin-account-error {
+  color: var(--ui-danger);
+}
+
+.restaurant-access-card input:focus-visible,
+.restaurant-access-card button:focus-visible,
+.settings-workspace .admin-account input:focus-visible,
+.settings-workspace .admin-account button:focus-visible {
+  outline: 3px solid var(--ui-primary);
+  outline-offset: 3px;
+}
+
+.restaurant-offline-banner {
+  background: #47351c;
+  color: #fcd68d;
+  border-bottom: 1px solid #88632a;
+}
