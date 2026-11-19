@@ -77,7 +77,7 @@ export function StatisticsPanel() {
   }
 
   return (
-    <section className="admin-account">
+    <section className="admin-account statistics-panel">
       <div className="section-heading">
         <span className="eyebrow">SUIVI D'ACTIVITÉ</span>
         <h1>Statistiques</h1>

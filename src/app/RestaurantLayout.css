@@ -2565,3 +2565,88 @@ button:focus-visible {
   outline: 3px solid var(--ui-primary);
   outline-offset: 3px;
 }
+
+/* UI-08A : statistiques sombres */
+
+.statistics-panel {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(100%, 320px), 1fr)
+  );
+  gap: 18px;
+  color: var(--ui-text);
+}
+
+.statistics-panel > .section-heading,
+.statistics-panel > .settings-tabs,
+.statistics-panel > .admin-account-info {
+  grid-column: 1 / -1;
+}
+
+.statistics-panel .section-heading p,
+.statistics-panel > .admin-account-info {
+  color: var(--ui-text-muted);
+}
+
+.statistics-panel .eyebrow {
+  color: #93c5fd;
+}
+
+.statistics-panel .settings-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.statistics-panel .settings-tabs button {
+  min-height: var(--ui-touch-target);
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-border);
+}
+
+.statistics-panel .settings-tabs button.active {
+  background: var(--ui-primary);
+  color: #ffffff;
+  border-color: var(--ui-primary);
+}
+
+.statistics-panel .admin-account-card {
+  min-width: 0;
+  padding: 22px;
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius);
+}
+
+.statistics-panel .admin-account-card h2 {
+  margin-top: 0;
+  font-size: 19px;
+}
+
+.statistics-panel .admin-account-card p {
+  line-height: 1.65;
+}
+
+.statistics-panel .admin-account-card strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.statistics-panel .admin-account-info {
+  color: var(--ui-text-muted);
+}
+
+.statistics-panel .admin-account-warning {
+  color: #fcd68d;
+  background: #47351c;
+  border: 1px solid #88632a;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.statistics-panel .settings-tabs button:focus-visible {
+  outline: 3px solid var(--ui-primary);
+  outline-offset: 3px;
+}
