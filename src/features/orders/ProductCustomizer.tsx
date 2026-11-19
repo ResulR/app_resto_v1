@@ -20,6 +20,7 @@ type Props = {
   initialOptions?: SelectedOption[]
   initialNote?: string
   initialVariant?: SelectedVariant
+  editing?: boolean
   onCancel: () => void
   onConfirm: (
     product: Product,
@@ -41,6 +42,7 @@ export function ProductCustomizer({
   initialOptions = [],
   initialNote = '',
   initialVariant,
+  editing = false,
   onCancel,
   onConfirm,
 }: Props) {
@@ -196,8 +198,9 @@ export function ProductCustomizer({
         </div>
 
         <p className="customizer-description">
-          Tous les choix sont facultatifs.
-          Aucune option n'est sélectionnée par défaut.
+          {editing
+            ? 'Modifiez les choix de cet article.'
+            : 'Tous les choix sont facultatifs. Aucune option n’est sélectionnée par défaut.'}
         </p>
 
         <div className="customizer-content">
@@ -354,7 +357,9 @@ export function ProductCustomizer({
             disabled={busy || data === undefined}
             onClick={() => void confirm()}
           >
-            Ajouter à la commande
+            {editing
+              ? 'Enregistrer les modifications'
+              : 'Ajouter à la commande'}
           </button>
         </div>
       </section>

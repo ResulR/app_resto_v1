@@ -2361,3 +2361,26 @@ button:focus-visible {
     margin: 10px 14px 0;
   }
 }
+
+/* UI-04B : choix tactiles */
+
+.customizer-dialog .customizer-option {
+  min-height: var(--ui-touch-target);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.customizer-dialog .customizer-option:has(input:checked) {
+  background: #233f63;
+  border-color: var(--ui-primary);
+}
+
+.customizer-dialog .customizer-option:has(input:disabled) {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .customizer-dialog .customizer-option {
+    transition: none;
+  }
+}

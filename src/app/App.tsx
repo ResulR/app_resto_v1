@@ -657,6 +657,7 @@ export default function App() {
           initialVariant={
             items.find(item => item.id === editingItemId)?.variant
           }
+          editing={editingItemId !== null}
           onCancel={() => {
             setCustomizing(null)
             setEditingItemId(null)
