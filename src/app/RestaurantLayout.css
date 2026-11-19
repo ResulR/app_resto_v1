@@ -2384,3 +2384,95 @@ button:focus-visible {
     transition: none;
   }
 }
+
+/* UI-05B : cartes des commandes actives */
+
+.active-orders {
+  color: var(--ui-text);
+}
+
+.active-orders .products-heading > span {
+  color: var(--ui-text-muted);
+}
+
+.active-orders .empty-catalogue {
+  background: var(--ui-surface);
+  color: var(--ui-text-muted);
+  border-color: var(--ui-border);
+}
+
+.active-orders-list {
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(100%, 320px), 1fr)
+  );
+  gap: 18px;
+}
+
+.active-order-card {
+  padding: 22px;
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius);
+}
+
+.active-order-identity strong {
+  font-size: 18px;
+}
+
+.active-order-identity span,
+.active-order-summary > span,
+.active-order-item span,
+.active-order-readonly {
+  color: var(--ui-text-muted);
+}
+
+.active-order-status {
+  background: #153e32;
+  color: var(--ui-success);
+  border: 1px solid #28664f;
+  font-size: 12px;
+}
+
+.active-order-summary {
+  gap: 10px;
+  font-size: 14px;
+}
+
+.active-order-summary strong {
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+}
+
+.active-order-details,
+.active-order-item,
+.preparation-ticket-details {
+  border-color: var(--ui-border);
+}
+
+.active-order-details summary {
+  min-height: var(--ui-touch-target);
+  color: #93c5fd;
+}
+
+.active-order-item {
+  background: var(--ui-surface-raised);
+}
+
+.active-orders .complete-order-button {
+  min-height: 60px;
+  background: #167347;
+  color: #ffffff;
+  border-color: #167347;
+}
+
+.active-orders .complete-order-button:hover:not(:disabled) {
+  background: #105c38;
+}
+
+.active-orders button:focus-visible,
+.active-orders summary:focus-visible {
+  outline: 3px solid var(--ui-primary);
+  outline-offset: 3px;
+}

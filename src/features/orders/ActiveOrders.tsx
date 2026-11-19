@@ -126,6 +126,14 @@ export function ActiveOrders({
                   {quantity} article{quantity > 1 ? 's' : ''}
                 </span>
 
+                <span>
+                  {order.consumptionMode === 'sur_place'
+                    ? 'Sur place'
+                    : order.consumptionMode === 'emporter'
+                      ? 'À emporter'
+                      : 'Non précisé'}
+                </span>
+
                 <strong>
                   {order.totalComplete
                     ? 'Total : '
