@@ -1,0 +1,87 @@
+.home-dashboard {
+  flex: 1;
+  padding: clamp(20px, 4vw, 56px);
+  background: var(--ui-bg);
+  color: var(--ui-text);
+}
+
+.home-heading {
+  margin-bottom: 32px;
+}
+
+.home-heading > span {
+  color: #93c5fd;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.home-heading h1 {
+  margin: 10px 0;
+  font-size: clamp(32px, 4vw, 48px);
+}
+
+.home-heading p {
+  color: var(--ui-text-muted);
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 18px;
+}
+
+.home-tile {
+  min-height: 170px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 26px;
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius);
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.home-tile strong {
+  font-size: 23px;
+}
+
+.home-tile span {
+  color: var(--ui-text-muted);
+  line-height: 1.5;
+}
+
+.home-tile:focus-visible {
+  outline: 3px solid var(--ui-primary);
+  outline-offset: 3px;
+}
+
+.home-tile:active {
+  background: var(--ui-surface-raised);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .home-tile {
+    transition: background 0.15s, border-color 0.15s;
+  }
+}
+
+@media (hover: hover) {
+  .home-tile:hover {
+    border-color: var(--ui-primary);
+  }
+}
+
+.section-workspace {
+  flex: 1;
+  width: 100%;
+  padding: clamp(16px, 3vw, 36px);
+  background: var(--ui-bg);
+  color: var(--ui-text);
+}

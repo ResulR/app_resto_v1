@@ -27,7 +27,11 @@ function displayNumber(order: ConfirmedOrder) {
   return order.id.toUpperCase()
 }
 
-export function ActiveOrders() {
+export function ActiveOrders({
+  showCashRegister = true,
+}: {
+  showCashRegister?: boolean
+}) {
   const orders = useLiveQuery(
     () => listActiveOrders(),
     [],
@@ -87,7 +91,7 @@ export function ActiveOrders() {
         </p>
       )}
 
-      <CashRegister />
+      {showCashRegister && <CashRegister />}
 
       <div className="active-orders-list">
         {orders?.map(order => {

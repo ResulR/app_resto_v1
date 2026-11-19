@@ -31,6 +31,7 @@ import {
 import { FreeItemForm } from '../features/orders/FreeItemForm'
 import { DraftManager } from '../features/orders/DraftManager'
 import { ActiveOrders } from '../features/orders/ActiveOrders'
+import { CashRegister } from '../features/checkout/CashRegister'
 import { CompletedOrders } from '../features/orders/CompletedOrders'
 import {
   saveDraft,
@@ -47,9 +48,22 @@ import {
 import { OrderCatalogue } from '../features/orders/OrderCatalogue'
 import { OrderSummary } from '../features/orders/OrderSummary'
 
+import {
+  HomeDashboard,
+  type HomeDestination,
+} from './HomeDashboard'
+
 import './RestaurantLayout.css'
 
-type Screen = 'orders' | 'settings'
+type Screen =
+  | 'home'
+  | 'orders'
+  | 'checkout'
+  | 'active'
+  | 'history'
+  | 'statistics'
+  | 'catalogue'
+  | 'settings'
 type SettingsTab = 'categories' | 'products' | 'options' | 'printing' | 'stats' | 'account'
 
 
@@ -61,7 +75,7 @@ function formatPrice(cents: number) {
 }
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>('orders')
+  const [screen, setScreen] = useState<Screen>('home')
 
   const [settingsTab, setSettingsTab] =
     useState<SettingsTab>('categories')
@@ -288,6 +302,22 @@ export default function App() {
     }
   }
 
+  function navigateFromHome(destination: HomeDestination) {
+    if (destination === 'catalogue') {
+      setSettingsTab('categories')
+      setScreen('catalogue')
+      return
+    }
+
+    if (destination === 'settings') {
+      setSettingsTab('account')
+      setScreen('settings')
+      return
+    }
+
+    setScreen(destination)
+  }
+
   return (
     <div className="restaurant-app">
       <header className="topbar">
@@ -304,27 +334,45 @@ export default function App() {
           <button
             className="screen-button"
             type="button"
-            onClick={() =>
-              setScreen(
-                screen === 'orders' ? 'settings' : 'orders',
-              )
-            }
+            disabled={screen === 'home'}
+            onClick={() => setScreen('home')}
           >
-            {screen === 'orders'
-              ? 'Paramètres'
-              : 'Retour aux commandes'}
+            Accueil
           </button>
 
           <div className="avatar">A</div>
         </div>
       </header>
 
-      {screen === 'settings' ? (
+      {screen === 'home' ? (
+        <HomeDashboard onNavigate={navigateFromHome} />
+      ) : screen === 'checkout' ? (
+        <main className="section-workspace">
+          <CashRegister />
+        </main>
+      ) : screen === 'active' ? (
+        <main className="section-workspace">
+          <ActiveOrders showCashRegister={false} />
+        </main>
+      ) : screen === 'history' ? (
+        <main className="section-workspace">
+          <CompletedOrders />
+        </main>
+      ) : screen === 'statistics' ? (
+        <main className="section-workspace">
+          <StatisticsPanel />
+        </main>
+      ) : screen === 'settings' || screen === 'catalogue' ? (
         <div className="settings-workspace">
           <nav
             className="settings-tabs"
-            aria-label="Paramètres du catalogue"
+            aria-label={
+              screen === 'catalogue'
+                ? 'Gestion du catalogue'
+                : 'Paramètres du restaurant'
+            }
           >
+            {screen === 'catalogue' && (
             <button
               type="button"
               className={
@@ -334,7 +382,9 @@ export default function App() {
             >
               Catégories
             </button>
+            )}
 
+            {screen === 'catalogue' && (
             <button
               type="button"
               className={
@@ -344,7 +394,9 @@ export default function App() {
             >
               Produits
             </button>
+            )}
 
+            {screen === 'catalogue' && (
             <button
               type="button"
               className={
@@ -354,7 +406,9 @@ export default function App() {
             >
               Options
             </button>
+            )}
 
+            {screen === 'settings' && (
             <button
               type="button"
               className={
@@ -364,17 +418,11 @@ export default function App() {
             >
               Impression
             </button>
+            )}
 
-            <button
-              type="button"
-              className={
-                settingsTab === 'stats' ? 'active' : ''
-              }
-              onClick={() => setSettingsTab('stats')}
-            >
-              Statistiques
-            </button>
 
+
+            {screen === 'settings' && (
             <button
               type="button"
               className={
@@ -384,6 +432,7 @@ export default function App() {
             >
               Compte
             </button>
+            )}
           </nav>
 
           {settingsTab === 'categories' ? (
@@ -408,21 +457,17 @@ export default function App() {
               aria-label="Navigation rapide du restaurant"
             >
               {[
-                { label: 'Produits', target: '.catalogue-panel' },
-                { label: 'Commandes actives', target: '.active-orders' },
-                { label: 'Caisse', target: '.cash-register' },
-                { label: 'Historique', target: '.completed-orders' },
+                { label: 'Produits', screen: 'orders' },
+                { label: 'Commandes actives', screen: 'active' },
+                { label: 'Caisse', screen: 'checkout' },
+                { label: 'Historique', screen: 'history' },
               ].map(shortcut => (
                 <button
-                  key={shortcut.target}
+                  key={shortcut.screen}
                   type="button"
-                  onClick={() => {
-                    document.querySelector(shortcut.target)
-                      ?.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start',
-                      })
-                  }}
+                  onClick={() =>
+                    setScreen(shortcut.screen as Screen)
+                  }
                 >
                   {shortcut.label}
                 </button>
@@ -469,9 +514,6 @@ export default function App() {
               activeDraftId={activeDraftId}
               onResume={resumeDraft}
             />
-
-            <ActiveOrders />
-            <CompletedOrders />
           </div>
 
           </div>
