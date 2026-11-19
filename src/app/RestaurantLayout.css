@@ -2650,3 +2650,121 @@ button:focus-visible {
   outline: 3px solid var(--ui-primary);
   outline-offset: 3px;
 }
+
+/* UI-09A : gestion du catalogue sombre */
+
+.restaurant-app {
+  background: var(--ui-bg);
+}
+
+.settings-workspace {
+  color: var(--ui-text);
+}
+
+.settings-workspace .section-heading p,
+.settings-workspace .variant-description,
+.settings-workspace .product-row-info span {
+  color: var(--ui-text-muted);
+}
+
+.settings-workspace .settings-tabs button {
+  min-height: var(--ui-touch-target);
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  border-color: var(--ui-border);
+}
+
+.settings-workspace .settings-tabs button.active {
+  background: var(--ui-primary);
+  color: #ffffff;
+  border-color: var(--ui-primary);
+}
+
+.settings-workspace .product-form,
+.settings-workspace .category-row,
+.settings-workspace .option-product-row {
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius);
+}
+
+.settings-workspace .category-form-row input,
+.settings-workspace .product-form input,
+.settings-workspace .product-form select {
+  min-height: var(--ui-touch-target);
+  background: var(--ui-surface-raised);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-border);
+  font-size: 16px;
+}
+
+.settings-workspace .category-form-row button,
+.settings-workspace .product-form-actions .product-save {
+  min-height: var(--ui-touch-target);
+  background: var(--ui-primary);
+  color: #ffffff;
+  border-color: var(--ui-primary);
+}
+
+.settings-workspace .product-form-actions button:not(.product-save),
+.settings-workspace .category-actions button:not(.archive-product-button):not(.availability-button),
+.settings-workspace .variant-heading > button {
+  min-height: var(--ui-touch-target);
+  background: var(--ui-surface-raised);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-border);
+}
+
+.settings-workspace .option-product-row {
+  min-height: var(--ui-touch-target);
+  cursor: pointer;
+}
+
+.settings-workspace .option-product-row input {
+  accent-color: var(--ui-primary);
+}
+
+.settings-workspace .category-error {
+  color: var(--ui-danger);
+}
+
+.settings-workspace .product-success {
+  color: var(--ui-success);
+}
+
+.settings-workspace button:focus-visible,
+.settings-workspace input:focus-visible,
+.settings-workspace select:focus-visible {
+  outline: 3px solid var(--ui-primary);
+  outline-offset: 2px;
+}
+
+/* UI-09B : actions sensibles */
+
+.settings-workspace .archive-product-button {
+  min-height: var(--ui-touch-target);
+  background: #472525;
+  color: #fca5a5;
+  border: 1px solid #b45353;
+}
+
+.settings-workspace .availability-button.available {
+  min-height: var(--ui-touch-target);
+  background: #153e32;
+  color: var(--ui-success);
+  border: 1px solid #28664f;
+}
+
+.settings-workspace .availability-button.unavailable {
+  min-height: var(--ui-touch-target);
+  background: #472525;
+  color: #fca5a5;
+  border: 1px solid #b45353;
+}
+
+.settings-workspace .category-actions button:disabled,
+.settings-workspace .product-form-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
